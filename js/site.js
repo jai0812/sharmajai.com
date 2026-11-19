@@ -14,6 +14,8 @@
 
   const ARROW = '<svg class="btn__arrow" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M1 6.5h10M7 2.5l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const BACK  = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M12 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const EXT   = '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M3 8L8 3M8 3H4M8 3v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const LOCK  = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
   const SEARCH_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
 
   /* ------------------- Interactive Modern Navigation ---------------------- */
@@ -48,11 +50,7 @@
         '</nav>' +
 
         '<div class="nav__actions">' +
-          '<div class="status-badge" title="Open for Data Science & ML Engineering Opportunities">' +
-            '<span class="status-dot"></span>' +
-            '<span>Available for roles</span>' +
-          '</div>' +
-          '<a class="btn btn--primary btn--sm" href="contact.html">Get in Touch</a>' +
+          '<a class="btn btn--primary btn--sm nav__cta" href="contact.html">Get in touch</a>' +
           '<button class="nav__toggle" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="nav-links">' +
             '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>' +
           '</button>' +
@@ -125,7 +123,7 @@
         e.preventDefault();
         const email = btn.getAttribute('data-copy-email') || SITE.email;
         navigator.clipboard.writeText(email).then(function () {
-          showToast('Email address copied to clipboard: ' + email);
+          showToast('Email copied: ' + email);
         }).catch(function () {
           window.location.href = 'mailto:' + email;
         });
@@ -257,6 +255,80 @@
     vids.forEach(function (v) { io.observe(v); });
   }
 
+  /* ------------------------- Live products -------------------------------- */
+  render.products = function (el) {
+    el.className = 'products';
+    el.innerHTML = PRODUCTS.map(function (p) {
+      return '<article class="product reveal">' +
+        '<a class="product__window" href="' + esc(p.url) + '" target="_blank" rel="noopener" aria-label="Open ' + esc(p.name) + ' at ' + esc(p.host) + '">' +
+          '<div class="product__bar" aria-hidden="true">' +
+            '<span class="product__dots"><i></i><i></i><i></i></span>' +
+            '<span class="product__addr"><span class="product__lock">' + LOCK + '</span>' + esc(p.host) + '</span>' +
+          '</div>' +
+          '<div class="product__shot"><img src="' + esc(p.shot) + '" alt="' + esc(p.shotAlt) + '" loading="lazy" width="1600" height="1000"></div>' +
+        '</a>' +
+        '<div class="product__body">' +
+          '<div class="product__status"><span class="product__live">Live</span><span>' + esc(p.host) + '</span></div>' +
+          '<h3>' + esc(p.name) + '</h3>' +
+          '<p>' + esc(p.summary) + '</p>' +
+          '<dl class="product__facts">' + p.facts.map(function (f) {
+            return '<div><dt>' + esc(f[1]) + '</dt><dd>' + esc(f[0]) + '</dd></div>';
+          }).join('') + '</dl>' +
+          '<div class="chips">' + p.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<div class="product__links">' +
+            '<a class="btn btn--primary btn--sm" href="' + esc(p.url) + '" target="_blank" rel="noopener">Open the site ' + EXT + '</a>' +
+            (p.repo ? '<a class="btn btn--sm" href="' + esc(p.repo) + '" target="_blank" rel="noopener">Source ' + EXT + '</a>' : '') +
+          '</div>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+  };
+
+  /* ------------------------- Certifications ------------------------------- */
+  render.certs = function (el) {
+    el.className = 'certs';
+    el.innerHTML = CERTS.map(function (c) {
+      const verify = c.url
+        ? '<a class="cert__verify" href="' + esc(c.url) + '" target="_blank" rel="noopener">Verify ' + EXT + '</a>'
+        : '';
+      return '<article class="cert reveal">' +
+        '<div class="cert__mark" aria-hidden="true">' + esc(c.issuer.charAt(0)) + '</div>' +
+        '<div class="cert__body">' +
+          '<h3>' + esc(c.name) + '</h3>' +
+          '<p class="cert__issuer">' + esc(c.issuer) + ' · ' + esc(c.date) + '</p>' +
+          '<p class="cert__id">ID ' + esc(c.id) + '</p>' +
+        '</div>' + verify +
+      '</article>';
+    }).join('');
+  };
+
+  render.interests = function (el) {
+    el.className = 'interests';
+    el.innerHTML = INTERESTS.map(function (i) {
+      return '<article class="interest reveal"><h3>' + esc(i.name) + '</h3><p>' + esc(i.body) + '</p></article>';
+    }).join('');
+  };
+
+  render.life = function (el) {
+    el.className = 'life';
+    el.innerHTML = LIFE.map(function (l) {
+      return '<article class="life__item reveal">' +
+        '<h3>' + esc(l.title) + '</h3>' +
+        '<span class="label life__meta">' + esc(l.meta) + '</span>' +
+        '<p>' + esc(l.body) + '</p>' +
+        (l.why ? '<p class="life__why">' + esc(l.why) + '</p>' : '') +
+      '</article>';
+    }).join('');
+  };
+
+  render.docs = function (el) {
+    el.className = 'docs';
+    el.innerHTML = DOCS.map(function (d) {
+      return '<a class="doc reveal" href="' + esc(d.file) + '" target="_blank" rel="noopener">' +
+        '<span>' + esc(d.label) + '</span><span class="doc__kind">' + esc(d.kind) + '</span></a>';
+    }).join('');
+  };
+
   /* -------------------- Interactive Projects Hub -------------------------- */
   render.projects = function (el) {
     const cats = ['All'].concat(PROJECTS.map(function (p) { return p.cat; })
@@ -277,14 +349,13 @@
     '</div>';
 
     const cardsHTML = '<div class="grid-projects" data-grid>' + PROJECTS.map(function (p, idx) {
-      const links = [];
-      if (p.featured) links.push('<a href="' + esc(p.featured) + '">Case Study</a>');
-      if (p.repo) links.push('<a href="' + esc(p.repo) + '" target="_blank" rel="noopener">Code ↗</a>');
+      const links = projectLinks(p);
+      const tag = p.live ? '<span class="project__tag project__tag--live">Live</span>'
+                : p.featured ? '<span class="project__tag">Case study</span>' : '';
 
-      return '<article class="project reveal' + (p.featured ? ' project--featured' : '') + '" data-cat="' + esc(p.cat) + '" data-idx="' + idx + '">' +
+      return '<article class="project reveal' + (p.featured || p.live ? ' project--featured' : '') + '" data-cat="' + esc(p.cat) + '" data-idx="' + idx + '">' +
         '<div class="project__top">' +
-          '<span class="project__cat-badge">' + esc(p.cat) + '</span>' +
-          (p.featured ? '<span class="status-badge" style="font-size:0.68rem;padding:0.15rem 0.5rem">Featured</span>' : '') +
+          '<span class="project__cat-badge">' + esc(p.cat) + '</span>' + tag +
         '</div>' +
         '<h3>' + esc(p.name) + '</h3>' +
         '<p>' + esc(p.desc) + '</p>' +
@@ -292,7 +363,7 @@
           '<span class="project__stat">' + esc(p.stat) + '</span>' +
           '<div class="chips">' + p.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
           '<div class="project__actions">' +
-            '<button type="button" class="btn btn--sm" data-quickview="' + idx + '">Quick View</button>' +
+            '<button type="button" class="btn btn--sm" data-quickview="' + idx + '">Quick view</button>' +
             '<div class="project__links">' + links.join('') + '</div>' +
           '</div>' +
         '</div>' +
@@ -350,13 +421,22 @@
     });
   }
 
+  function projectLinks(p) {
+    const links = [];
+    if (p.featured) links.push('<a href="' + esc(p.featured) + '">Case study</a>');
+    if (p.live) links.push('<a href="' + esc(p.live) + '" target="_blank" rel="noopener">Live site ' + EXT + '</a>');
+    if (p.repo) links.push('<a href="' + esc(p.repo) + '" target="_blank" rel="noopener">Code ' + EXT + '</a>');
+    else if (p.private) links.push('<span class="project__private">Private repo</span>');
+    return links;
+  }
+
   function openProjectModal(p) {
     let overlay = $('#project-modal');
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.id = 'project-modal';
       overlay.className = 'modal-overlay';
-      overlay.innerHTML = '<div class="modal-card">' +
+      overlay.innerHTML = '<div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">' +
         '<button class="modal-close" type="button" aria-label="Close dialog">✕</button>' +
         '<div id="modal-content"></div>' +
       '</div>';
@@ -379,23 +459,23 @@
 
     const content = $('#modal-content', overlay);
     const links = [];
-    if (p.featured) links.push('<a class="btn btn--primary" href="' + esc(p.featured) + '">Read Full Case Study ' + ARROW + '</a>');
-    if (p.repo) links.push('<a class="btn" href="' + esc(p.repo) + '" target="_blank" rel="noopener">View Source Code ↗</a>');
+    if (p.featured) links.push('<a class="btn btn--primary" href="' + esc(p.featured) + '">Read the case study ' + ARROW + '</a>');
+    if (p.live) links.push('<a class="btn btn--primary" href="' + esc(p.live) + '" target="_blank" rel="noopener">Open the live site ' + EXT + '</a>');
+    if (p.repo) links.push('<a class="btn" href="' + esc(p.repo) + '" target="_blank" rel="noopener">View the code ' + EXT + '</a>');
+    if (!p.repo && p.private) links.push('<span class="project__private">Code is in a private repository</span>');
 
-    content.innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">' +
+    content.innerHTML = '<div class="modal__meta">' +
       '<span class="project__cat-badge">' + esc(p.cat) + '</span>' +
-      '<span class="stat-item__label" style="font-family:var(--font-mono)">' + esc(p.stat) + '</span>' +
+      '<span class="project__stat">' + esc(p.stat) + '</span>' +
     '</div>' +
-    '<h2 style="font-size:1.65rem;font-weight:800;margin-bottom:1rem;color:var(--text)">' + esc(p.name) + '</h2>' +
-    '<p style="font-size:1.02rem;color:var(--text-secondary);line-height:1.65;margin-bottom:1.5rem">' + esc(p.desc) + '</p>' +
-    '<div style="margin-bottom:1.75rem"><span class="label" style="display:block;margin-bottom:0.6rem">Technologies &amp; Libraries</span>' +
-      '<div class="chips">' + p.tech.map(function (t) { return '<span class="chip" style="font-size:0.8rem;padding:0.35rem 0.75rem">' + esc(t) + '</span>'; }).join('') + '</div>' +
-    '</div>' +
-    '<div style="display:flex;flex-wrap:wrap;gap:0.75rem;padding-top:1.25rem;border-top:1px solid var(--border)">' +
-      links.join('') +
-    '</div>';
+    '<h2 class="modal__title" id="modal-title">' + esc(p.name) + '</h2>' +
+    '<p class="modal__desc">' + esc(p.desc) + '</p>' +
+    '<span class="label">Built with</span>' +
+    '<div class="chips modal__chips">' + p.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+    '<div class="modal__links">' + links.join('') + '</div>';
 
     overlay.dataset.open = 'true';
+    $('.modal-close', overlay).focus();
   }
 
   /* ------------------- Interactive Publications Accordion ----------------- */
@@ -480,6 +560,7 @@
 
   /* ------------------- Interactive Experience Switcher -------------------- */
   render.experience = function (el) {
+    const rolesOnly = el.dataset.mode === 'roles';
     let rolesHTML = '<div class="timeline" id="exp-roles">' + WORK.roles.map(function (r, i) {
       const period = r.period || (r.start && r.end ? r.start + ' — ' + r.end : r.start || r.end || '');
       return '<div class="tl reveal' + (i === 0 ? ' tl--now' : '') + '">' +
@@ -512,9 +593,11 @@
       '</div>';
     }).join('') + '</div>';
 
+    if (rolesOnly) { el.innerHTML = rolesHTML; return; }
+
     const tabsHTML = '<div class="timeline-toggle" role="tablist">' +
-      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-roles" aria-selected="true" data-target="exp-roles">Work &amp; Research Roles (' + WORK.roles.length + ')</button>' +
-      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-edu" aria-selected="false" data-target="exp-edu">Academic Background (' + WORK.education.length + ')</button>' +
+      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-roles" aria-selected="true" data-target="exp-roles">Work &amp; research</button>' +
+      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-edu" aria-selected="false" data-target="exp-edu">Education</button>' +
     '</div>';
 
     el.innerHTML = tabsHTML + rolesHTML + eduHTML;
@@ -584,16 +667,12 @@
     if (!form) return;
     const status = $('.form__status', form);
     const note   = $('[data-form-note]');
-    const local  = location.protocol === 'file:' ||
-                  /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-    const mode   = SITE.formspreeId ? 'formspree'
-                 : (SITE.netlifyForms && !local) ? 'netlify'
-                 : 'mailto';
+    const mode   = SITE.formspreeId ? 'formspree' : 'mailto';
 
     if (note) {
       note.textContent = mode === 'mailto'
-        ? 'Direct email transmission to ' + SITE.email + '.'
-        : 'Transmits securely directly to Jai’s inbox.';
+        ? 'Opens your email app, addressed to ' + SITE.email + '.'
+        : 'Goes straight to my inbox.';
     }
 
     form.addEventListener('submit', function (ev) {
@@ -606,7 +685,7 @@
       if (fd.get('bot-field')) return;
       if (!email || !message) {
         status.dataset.state = 'err';
-        status.textContent = 'Please provide both your email address and a message.';
+        status.textContent = 'Add your email address and a message, then send again.';
         return;
       }
 
@@ -632,8 +711,7 @@
         if (!r.ok) throw new Error('http ' + r.status);
         form.reset();
         status.dataset.state = 'ok';
-        status.textContent = 'Message sent successfully! Jai will reply soon.';
-        showToast('Message sent cleanly to Jai Sharma.');
+        status.textContent = 'Message sent. I’ll reply by email.';
       })
       .catch(function () {
         status.dataset.state = 'err';
@@ -671,6 +749,10 @@
       const fn = render[el.dataset.render];
       if (fn) fn(el);
     });
+
+    if (typeof WORK !== 'undefined' && WORK.roles.length) {
+      $$('[data-experience-heading], [data-render="experience"]').forEach(function (el) { el.hidden = false; });
+    }
 
     resume();
     contactForm();

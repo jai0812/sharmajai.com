@@ -1,10 +1,5 @@
 User-agent: *
 Allow: /
-
-# Working files, blocked at the server too (see netlify.toml). Listed here so
-# crawlers don't index them even if a rule is ever removed.
-Disallow: /README.md
 Disallow: /tools/
-Disallow: /.claude/
 
 Sitemap: https://sharmajai.com/sitemap.xml

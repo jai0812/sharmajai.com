@@ -20,29 +20,9 @@ const SITE = {
   domain: 'sharmajai.com',
 
   // ---------------------------------------------------------------------------
-  // CONTACT FORM — where submissions go.
-  //
-  // Currently: FORMSPREE (endpoint https://formspree.io/f/mzeprezw).
-  // Submissions email you and are listed in the Formspree dashboard, which
-  // exports to CSV. Free tier is 50 submissions a month.
-  //
-  // Order of preference, first one that's switched on wins:
-  //
-  //   1. netlifyForms  — set true (and clear formspreeId) to let Netlify
-  //      capture submissions instead. No account needed, 100/month, but it
-  //      only works once deployed to Netlify.
-  //
-  //   2. formspreeId   — the bit of the endpoint URL after /f/. In use now.
-  //
-  //   3. mailto        — the fallback, if neither is set. Also used whenever a
-  //      send fails, so a message is never silently lost.
-  //
-  // sheetWebhook is an OPTIONAL extra, not a replacement: paste a Google Apps
-  // Script URL here and every submission is ALSO appended to a live Google
-  // Sheet. Setup instructions and the script to copy are in the README.
-  netlifyForms: false,
+  // CONTACT FORM — submissions go to Formspree (https://formspree.io/f/mzeprezw),
+  // which emails you. If a send fails, the visitor's mail app opens instead.
   formspreeId: 'mzeprezw',
-  sheetWebhook: '',
 
   // Download buttons stay hidden until this file exists.
   resumeUrl: 'assets/documents/resume.pdf',
@@ -72,31 +52,44 @@ const SITE = {
 const WORK = {
   roles: [
     {
+      title: 'System Engineer',
+      company: 'Boston University College of Communication',
+      location: 'Boston, MA · Part-time',
+      start: 'Oct 2026', end: 'Present',
+      bullets: [
+        'Data architecture and technical support for the College of Communication — keeping its systems, data and tools running for faculty, staff and students.'
+      ],
+      tech: ['Data architecture', 'Technical support'],
+      image: '',
+      imageAlt: ''
+    },
+    {
+      title: 'Data Engineer Intern',
+      company: 'Insighta',
+      location: 'Boston, MA',
+      start: 'May 2026', end: 'Aug 2026',
+      bullets: [
+        'Built ML-driven response verification and payout gating for a survey research platform, so studies only pay for clean, trustworthy responses from confirmed participants.',
+        'Built the tiered verified-participant module — identity, eligibility and response-quality checks — on FastAPI and SQLAlchemy.',
+        'Built the analytics side: participation and response-quality reporting for the researchers running each study.'
+      ],
+      tech: ['Python', 'FastAPI', 'SQLAlchemy', 'Statistical analysis'],
+      image: 'assets/experience/insighta.jpg',
+      imageAlt: 'Diagram of a four-tier verification funnel — identity, eligibility, response quality, verified — feeding a payout gate that releases only after all four pass'
+    },
+    {
       title: 'Research Assistant',
       company: 'AI & Computer Vision (AICV) Lab, Boston University',
-      location: 'Boston, MA',
-      start: 'Jan 2026', end: 'May 2026', period: '',
+      location: 'Boston, MA · Part-time',
+      start: 'Jan 2026', end: 'May 2026',
       bullets: [
-        'Deep-learning research on medical image analysis for knee osteoarthritis in the AICV Lab — building U-Net bone-segmentation models on knee MRI to support automated osteoarthritis assessment.',
+        'Deep-learning research on medical image analysis for knee osteoarthritis — building U-Net bone-segmentation models on knee MRI to support automated osteoarthritis assessment.',
         'Handled the full imaging pipeline: DICOM-to-image conversion, mask generation, preprocessing, and training on BU\'s Shared Computing Cluster (GPU).',
         'The same underlying problem as my hand osteoarthritis research — getting dependable performance out of medical imaging data that is scarce and unevenly labelled.'
       ],
-      tech: ['Python', 'TensorFlow', 'OpenCV', 'U-Net', 'Medical imaging'],
+      tech: ['Python', 'PyTorch', 'TensorFlow', 'LangChain', 'U-Net', 'OpenCV'],
       image: 'assets/experience/knee-mri.jpg',
       imageAlt: 'Schematic of a knee joint from the side, with the articular cartilage and tibial plateau marked and a predicted segmentation contour drawn around the femoral condyle'
-    },
-    {
-      title: 'AI/Backend Developer',
-      company: 'Insighta',
-      location: 'Boston University startup',
-      start: 'May 2026', end: 'Aug 2026',
-      bullets: [
-        'Built the verified-participant module for a survey research platform: tiered verification with payout gating, so studies only pay out for responses from confirmed participants.',
-        'Built the analytics side — participation and response-quality reporting for the researchers running each study.'
-      ],
-      tech: ['FastAPI', 'SQLAlchemy', 'Python', 'Jinja2'],
-      image: 'assets/experience/insighta.jpg',
-      imageAlt: 'Diagram of a four-tier verification funnel — identity, eligibility, response quality, verified — feeding a payout gate that releases only after all four pass'
     },
     {
       title: 'Data Science Intern',
@@ -118,10 +111,10 @@ const WORK = {
       location: 'Amritsar, India',
       start: 'May 2024', end: 'Aug 2024',
       bullets: [
-        'Researched iris recognition and biometric identification using image processing — segmentation, feature extraction, and Hamming-distance matching.',
-        'Contributed analysis and results towards peer-reviewed publications.'
+        'Research and software development for iris recognition and biometric identification: image segmentation, feature extraction and Hamming-distance matching.',
+        'Analysis and results contributed to peer-reviewed publications.'
       ],
-      tech: ['Python', 'Image processing', 'OpenCV'],
+      tech: ['Python', 'OpenCV', 'Image processing', 'Biometrics'],
       image: '',
       imageAlt: ''
     }
@@ -359,78 +352,165 @@ const PAPERS = [
   }
 ];
 
+/* =========================== LIVE PRODUCTS ================================ */
+/* Things running in public right now. Shown as browser windows on the home
+   page, with the real address in the address bar. `shot` is a screenshot in
+   assets/products/ (any width ≥1200px; the frame crops from the top).        */
+const PRODUCTS = [
+  {
+    name: 'SharmaJai Job Portal',
+    url: 'https://jobs.sharmajai.com',
+    host: 'jobs.sharmajai.com',
+    repo: 'https://github.com/jai0812/job_portal',
+    shot: 'assets/products/job-portal.jpg',
+    shotAlt: 'The job portal home page: the headline "Jobs from the source, minutes after they\'re posted" above a departure-board table of new postings',
+    summary: 'Reads 526 employers\' own career sites and 43 job lists every 10–30 minutes, de-duplicates them into one table, and shows each US employer\'s real H-1B approval history from USCIS data.',
+    facts: [['526', 'career sites read'], ['~200k', 'open jobs indexed'], ['10 min', 'refresh for top companies']],
+    tech: ['Python', 'FastAPI', 'SQLite', 'JavaScript', 'Apify']
+  },
+  {
+    name: 'Boston Subway Replay',
+    url: 'https://mbta.sharmajai.com',
+    host: 'mbta.sharmajai.com',
+    repo: 'https://github.com/jai0812/boston-transit-reliability',
+    shot: 'assets/products/transit.jpg',
+    shotAlt: 'Replay of Kenmore station on the Green Line: an LED countdown showing arrival ranges, and a schematic of the B, C, D and E branches with live trains',
+    summary: 'Day-ahead arrival forecasts with calibrated ranges for every Blue, Red and Green Line train, checked against 12.5 million real arrivals. Replay any morning commute on a live map.',
+    facts: [['12.5M', 'arrivals checked'], ['75–82%', 'inside an 80% range'], ['104', 'stations']],
+    tech: ['Python', 'DuckDB', 'LightGBM', 'Conformal prediction', 'React', 'MapLibre']
+  },
+  {
+    name: 'Piano Learn',
+    url: 'https://jai0812.github.io/piano-learn/',
+    host: 'jai0812.github.io/piano-learn',
+    repo: 'https://github.com/jai0812/piano-learn',
+    shot: 'assets/products/piano-learn.jpg',
+    shotAlt: 'Falling note tiles over a full 88-key piano keyboard, each tile labelled with the laptop key to press',
+    summary: 'Turns a laptop keyboard into an 88-key piano: falling tiles, a sampled grand piano, 26 songs at three levels, and MIDI import. One HTML file, no dependencies.',
+    facts: [['88', 'keys'], ['26', 'songs'], ['0', 'dependencies']],
+    tech: ['JavaScript', 'Web Audio API', 'Canvas']
+  }
+];
+
+/* ============================ CERTIFICATIONS ============================== */
+const CERTS = [
+  { name: 'Bloomberg Market Concepts', issuer: 'Bloomberg', date: 'Oct 2026',
+    id: 'fEkaXS1Unb6L6wPZYUfAwLyb',
+    url: 'https://portal.bloombergforeducation.com/certificates/fEkaXS1Unb6L6wPZYUfAwLyb' },
+  { name: 'Introduction to Data Analytics in Google Cloud', issuer: 'Google Cloud Skills Boost', date: 'Jul 2024',
+    id: '9837380',
+    url: 'https://www.cloudskillsboost.google/public_profiles/a0ad5eb3-2913-48c8-9632-d2cccebde651/badges/9837380' },
+  { name: 'Introduction to Git and GitHub', issuer: 'Google · Coursera', date: 'Jul 2024',
+    id: 'PZ2QUNQB35ST',
+    url: 'https://www.coursera.org/account/accomplishments/records/PZ2QUNQB35ST' },
+  { name: 'Software Engineering Job Simulation', issuer: 'Goldman Sachs · Forage', date: 'Mar 2024',
+    id: '3uksNSXnMYwz9hGyy',
+    url: 'https://forage-uploads-prod.s3.amazonaws.com/completion-certificates/Goldman%20Sachs/NPdeQ43o8P9HJmJzg_Goldman%20Sachs_ApweQ9EW6F4KN7Met_1711316877126_completion_certificate.pdf' },
+  { name: 'Cloud Platform Job Simulation', issuer: 'Verizon · Forage', date: 'Mar 2024',
+    id: '7MxLcuGSExR2Cucza', url: '' },
+  { name: 'Foundations: Data, Data, Everywhere', issuer: 'Google · Coursera', date: 'Jul 2022',
+    id: 'LLHDTTSAJF5B',
+    url: 'https://www.coursera.org/account/accomplishments/records/LLHDTTSAJF5B' }
+];
+
 /* ============================== PROJECTS ================================== */
-/* `repo` is the code link shown on each project card.                        */
+/* `featured` links a case study, `live` a running site, `repo` the code.
+   Leave `repo` empty for private work and the card says so instead.         */
 const PROJECTS = [
+  { name: 'SharmaJai Job Portal', cat: 'Full-stack products', featured: '', live: 'https://jobs.sharmajai.com',
+    desc: 'Job search built from employers\' own career sites: 526 sites and 43 job lists checked every 10–30 minutes, de-duplicated into one table, with USCIS H-1B approval history for every US employer and per-user application tracking.',
+    stat: 'Live · ~200k open jobs', tech: ['Python', 'FastAPI', 'SQLite', 'JavaScript', 'Apify'],
+    repo: 'https://github.com/jai0812/job_portal' },
+
+  { name: 'Boston Subway Replay', cat: 'Machine learning', featured: '', live: 'https://mbta.sharmajai.com',
+    desc: 'Day-ahead arrival forecasts with conformal prediction ranges for Boston\'s Blue, Red and Green Lines, scored on 12.5M real arrivals. Beat the historical baseline on the Red Line; the Green Line loss is reported as measured.',
+    stat: '75–82% coverage vs 80% target', tech: ['DuckDB', 'LightGBM', 'Conformal prediction', 'FastAPI', 'React', 'TypeScript'],
+    repo: 'https://github.com/jai0812/boston-transit-reliability' },
+
+  { name: 'Boston Restaurant Saturation', cat: 'Machine learning', featured: '', live: '',
+    desc: 'How many restaurants can a Boston neighbourhood support? Census, OpenStreetMap, food-inspection and LODES jobs data feed three LightGBM and kNN models — capacity, underserved cuisines and 24-month survival — behind a what-if map.',
+    stat: '681 block groups scored', tech: ['Python', 'LightGBM', 'GeoPandas', 'FastAPI', 'Next.js'],
+    repo: 'https://github.com/jai0812/boston-restaurant-saturation' },
+
+  { name: 'AI Contract Management', cat: 'NLP & LLMs', featured: '', live: '',
+    desc: 'Proof of concept that turns media contracts into structured, source-traceable terms. I lead extraction: PDF ingestion with layout, table and OCR-quality detection, a Pydantic term schema, and an evaluator that checks every value against a quote on its page.',
+    stat: 'AI architect · team of four', tech: ['Python', 'PyMuPDF', 'Pydantic', 'pytest', 'uv'],
+    repo: '', private: true },
+
+  { name: 'Piano Learn', cat: 'Full-stack products', featured: '', live: 'https://jai0812.github.io/piano-learn/',
+    desc: 'A laptop-keyboard piano with falling tiles, a sampled Yamaha grand, 26 songs at three levels, MIDI import and recording — in a single HTML file.',
+    stat: 'Live · zero dependencies', tech: ['JavaScript', 'Web Audio API', 'Canvas'],
+    repo: 'https://github.com/jai0812/piano-learn' },
+
   { name: 'Hand OA X-ray Synthesis', cat: 'Computer vision', featured: 'case-hand-oa.html',
     desc: 'Class-conditional latent diffusion plus a CycleGAN baseline, built to fix an extreme class imbalance where severe grades were 2.9% of the data.',
     stat: '0.878 → 0.908 AUC', tech: ['PyTorch', 'Diffusion', 'CycleGAN', 'ResNet-18', 'VAE'],
-    repo: 'https://github.com/jai0812' },
+    repo: '' },
 
   { name: 'Human Activity Recognition on Spark', cat: 'Big data', featured: 'case-harsc.html',
     desc: 'KNN written from scratch on PySpark RDD primitives with zero MLlib, classifying six activities from 561-dimensional sensor data — roughly 21.7 million distance computations.',
     stat: '90.53% on AWS EMR', tech: ['PySpark', 'AWS EMR', 'S3', 'NumPy'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Human-Activity-Recognition' },
 
   { name: 'US Household Disability Prediction', cat: 'Data science', featured: 'case-disability.html',
     desc: 'Nine classifiers crossed with four balancing techniques on 9,241 households and 145 features from the 2023 American Housing Survey.',
     stat: '36 pipelines compared', tech: ['scikit-learn', 'imbalanced-learn', 'Pandas'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/us-household-disability-prediction' },
 
   { name: 'Lane Advantage in Track & Field', cat: 'Sports analytics', featured: 'case-lane-advantage.html',
     desc: 'Does lane assignment decide sprint races? About 866 elite race entries tested with chi-square, logistic regression, ANOVA and Tukey HSD.',
     stat: 'χ² = 50.6, p = 3×10⁻⁸', tech: ['R', 'tidyverse', 'ANOVA', 'Tukey HSD'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/LaneAdvantage-Analytics' },
 
   { name: 'Multi-Agent RAG Assistant', cat: 'NLP & LLMs', featured: '',
     desc: 'Question answering over research papers using LLaMA 3 through Ollama, FAISS embeddings, and cosine-similarity scoring to flag likely hallucinations.',
     stat: 'Runs fully local', tech: ['LangChain', 'Ollama', 'LLaMA 3', 'FAISS'],
-    repo: 'https://github.com/jai0812' },
+    repo: '' },
 
   { name: 'Face Recognition Attendance', cat: 'Computer vision', featured: '',
     desc: 'Webcam attendance capture using LBPH facial recognition, with a Tkinter dashboard and WhatsApp alerts over Twilio.',
     stat: 'End-to-end desktop app', tech: ['OpenCV', 'Tkinter', 'Twilio'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Face-Recognition-Attendance-System' },
 
   { name: 'Anomaly Detection Visualizer', cat: 'Data science', featured: '',
     desc: 'Drop in any CSV, pick your features, and see anomalies surfaced by Isolation Forest in an interactive Plotly view.',
     stat: 'Streamlit app', tech: ['Streamlit', 'scikit-learn', 'Plotly'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/anomaly-visualizer' },
 
   { name: 'MovieLens 10M Analysis', cat: 'Big data', featured: '',
     desc: 'Rating-distribution analysis across 10 million rows, with five-partition splitting and a manual sort benchmarked against Python\'s built-in.',
     stat: '10M rows', tech: ['Python', 'NumPy', 'Matplotlib'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Big_Data_Projects' },
 
   { name: 'NYC Taxi Analytics', cat: 'Big data', featured: '',
     desc: 'Pure-Python streaming analysis of 2013 trip data: most active taxis, highest earning drivers by dollars per minute, and peak revenue hours.',
     stat: 'Revenue peaks at 7 PM', tech: ['Python', 'CSV', 'Jupyter'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Big_Data_Projects' },
 
   { name: 'Data Cleaning Toolkit', cat: 'Data analytics', featured: '',
     desc: 'A reusable preprocessing pipeline: missing-value handling, IQR outlier removal, min-max and z-score normalisation, and one-hot encoding.',
     stat: 'Reusable pipeline', tech: ['Python', 'Pandas', 'Matplotlib'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Python-utils' },
 
   { name: 'InventaBill', cat: 'Tools', featured: '',
     desc: 'Desktop retail billing and inventory system with GST invoicing, stock management, sales analytics and PDF invoice generation.',
     stat: 'Shipped desktop app', tech: ['Python', 'Tkinter', 'SQLite', 'FPDF'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/InventaBill' },
 
   { name: 'Insighta Platform', cat: 'Tools', featured: '',
     desc: 'Survey research platform with a verified-participant engine, tiered verification and payout gating.',
     stat: 'Full-stack service', tech: ['FastAPI', 'SQLAlchemy', 'Jinja2'],
-    repo: 'https://github.com/jai0812' },
+    repo: '' },
 
   { name: 'Text Editor on a Linked List', cat: 'Tools', featured: '',
     desc: 'A command-line text editor built on a custom singly linked list, so line insertion and deletion stay cheap.',
     stat: 'Data structures from scratch', tech: ['C++'],
-    repo: 'https://github.com/jai0812' },
+    repo: 'https://github.com/jai0812/Text_Editor' },
 
   { name: 'SQL Coursework', cat: 'Data analytics', featured: '',
     desc: 'PostgreSQL schema design work: normalisation, constraints, indexing strategy and query optimisation.',
     stat: 'PostgreSQL', tech: ['PostgreSQL', 'SQL'],
-    repo: 'https://github.com/jai0812' }
+    repo: 'https://github.com/jai0812/sql-courseqwork' }
 ];
 
 /* ============================== INTERESTS ================================= */
