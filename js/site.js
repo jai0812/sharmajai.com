@@ -1,7 +1,6 @@
 /* =============================================================================
-   site.js — shared behaviour + renderers.
-   Every list on the site is drawn from js/data.js, so content is edited in
-   exactly one place. Blocks opt in with  <div data-render="cases"></div>.
+   site.js — Modern Interactive Behaviour & Renderers for Jai Sharma
+   Data Scientist & Machine Learning Engineer Portfolio
    ========================================================================== */
 
 (function () {
@@ -13,19 +12,67 @@
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  const ARROW = '<svg class="btn__arrow" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M1 6.5h10M7 2.5l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const BACK  = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M12 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const ARROW = '<svg class="btn__arrow" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M1 6.5h10M7 2.5l4 4-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const BACK  = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M12 6.5H2M6 2.5l-4 4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const SEARCH_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
 
-  /* --------------------------- navigation -------------------------------- */
-  function nav() {
+  /* ------------------- Interactive Modern Navigation ---------------------- */
+  function buildHeader() {
+    let oldNav = $('header.nav') || $('header.masthead-header');
+    if (!oldNav) return;
+
+    // Remove any legacy ticker bars or dateline strips
+    const legacyTicker = $('.ticker-bar');
+    if (legacyTicker) legacyTicker.remove();
+    const legacyDateline = $('.dateline-strip');
+    if (legacyDateline) legacyDateline.remove();
+
+    const headerHTML = '<header class="nav">' +
+      '<div class="wrap nav__in">' +
+        '<a class="brand" href="index.html">' +
+          '<div class="brand__mark" aria-hidden="true">JS</div>' +
+          '<div class="brand__text">' +
+            '<span class="brand__name">Jai Sharma</span>' +
+            '<span class="brand__role">Data Scientist &amp; ML Engineer</span>' +
+          '</div>' +
+        '</a>' +
+
+        '<nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary Navigation">' +
+          '<a class="nav__link" href="index.html">Home</a>' +
+          '<a class="nav__link" href="experience.html">Experience</a>' +
+          '<a class="nav__link" href="research.html">Research</a>' +
+          '<a class="nav__link" href="projects.html">Projects</a>' +
+          '<a class="nav__link" href="writing.html">Writing</a>' +
+          '<a class="nav__link" href="about.html">About</a>' +
+          '<a class="nav__link" href="contact.html">Contact</a>' +
+        '</nav>' +
+
+        '<div class="nav__actions">' +
+          '<div class="status-badge" title="Open for Data Science & ML Engineering Opportunities">' +
+            '<span class="status-dot"></span>' +
+            '<span>Available for roles</span>' +
+          '</div>' +
+          '<a class="btn btn--primary btn--sm" href="contact.html">Get in Touch</a>' +
+          '<button class="nav__toggle" type="button" aria-expanded="false" aria-label="Toggle navigation menu" aria-controls="nav-links">' +
+            '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</header>';
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = headerHTML;
+    const newHeader = tempDiv.firstElementChild;
+    oldNav.parentNode.replaceChild(newHeader, oldNav);
+
+    // Wire up mobile toggle
     const toggle = $('.nav__toggle');
-    const links  = $('.nav__links');
+    const links  = $('#nav-links');
     if (toggle && links) {
       toggle.addEventListener('click', function () {
         const open = links.dataset.open === 'true';
         links.dataset.open = String(!open);
         toggle.setAttribute('aria-expanded', String(!open));
-        toggle.setAttribute('aria-label', open ? 'Open menu' : 'Close menu');
       });
       $$('.nav__link', links).forEach(function (a) {
         a.addEventListener('click', function () {
@@ -34,22 +81,83 @@
         });
       });
     }
+  }
 
-    // mark the current page
+  function navHighlight() {
     let here = location.pathname.split('/').pop() || 'index.html';
+    if (here === '' || here === '/') here = 'index.html';
+
     $$('.nav__link').forEach(function (a) {
       const href = a.getAttribute('href');
       if (href === here || (here === 'index.html' && href === 'index.html')) {
         a.setAttribute('aria-current', 'page');
       }
-      // case-study pages light up "Projects"
       if (here.indexOf('case-') === 0 && href === 'projects.html') {
+        a.setAttribute('aria-current', 'page');
+      }
+      if (here.indexOf('post-') === 0 && href === 'writing.html') {
         a.setAttribute('aria-current', 'page');
       }
     });
   }
 
-  /* ------------------------- scroll reveal ------------------------------- */
+  /* ------------------------- Interactive Toast ---------------------------- */
+  function showToast(msg) {
+    let toast = $('#toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ' + esc(msg);
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(function () {
+      toast.classList.remove('show');
+    }, 2800);
+  }
+
+  /* ------------------- Interactive Copy-to-Clipboard ---------------------- */
+  function setupCopyButtons() {
+    $$('[data-copy-email]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const email = btn.getAttribute('data-copy-email') || SITE.email;
+        navigator.clipboard.writeText(email).then(function () {
+          showToast('Email address copied to clipboard: ' + email);
+        }).catch(function () {
+          window.location.href = 'mailto:' + email;
+        });
+      });
+    });
+  }
+
+  /* -------------------- Interactive Back to Top --------------------------- */
+  function setupBackToTop() {
+    let btn = $('.back-to-top');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'back-to-top';
+      btn.setAttribute('aria-label', 'Scroll back to top');
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>';
+      document.body.appendChild(btn);
+    }
+
+    window.addEventListener('scroll', function () {
+      if (window.scrollY > 350) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+      }
+    }, { passive: true });
+
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  /* ----------------------- Scroll Reveal Observer ------------------------ */
   function reveal() {
     const targets = $$('.reveal, [data-bars]');
     if (!('IntersectionObserver' in window)) {
@@ -62,20 +170,26 @@
         e.target.classList.add('is-in');
         io.unobserve(e.target);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
     targets.forEach(function (el, i) {
       el.style.transitionDelay = Math.min(i % 4, 3) * 60 + 'ms';
       io.observe(el);
     });
   }
 
-  /* ---------------------------- renderers -------------------------------- */
+  /* --------------------------- Renderers --------------------------------- */
   const render = {};
 
   render.pillars = function (el) {
     el.className = 'pillars';
-    el.innerHTML = PILLARS.map(function (p) {
+    const icons = [
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>',
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>'
+    ];
+    el.innerHTML = PILLARS.map(function (p, idx) {
       return '<article class="pillar reveal">' +
+        '<div class="pillar__icon">' + (icons[idx] || icons[0]) + '</div>' +
         '<h3>' + esc(p.name) + '</h3>' +
         '<p>' + esc(p.body) + '</p>' +
         '<div class="chips">' + p.chips.map(function (c) {
@@ -88,9 +202,6 @@
   render.cases = function (el) {
     el.className = 'cases';
     el.innerHTML = CASES.map(function (c) {
-      // A video wins if one is set; the still stays on as its poster, so the
-      // card is never empty while the file loads and reduced-motion visitors
-      // simply keep the still.
       let plate;
       if (c.video) {
         plate = '<div class="case__plate">' +
@@ -104,16 +215,19 @@
         plate = '<div class="case__plate"><img class="case__media" src="' + esc(c.thumb) +
           '" alt="' + esc(c.thumbAlt) + '" loading="lazy" width="1600" height="1000"></div>';
       } else {
-        plate = '<div class="case__plate case__plate--empty"><span class="label">figures in progress</span></div>';
+        plate = '<div class="case__plate case__plate--empty"><span class="label">Figure in progress</span></div>';
       }
       return '<article class="case reveal">' +
         '<div class="case__body">' +
-          '<span class="label case__kicker">' + esc(c.kicker) + '</span>' +
-          '<h3 class="display"><a href="' + esc(c.slug) + '">' + esc(c.title) + '</a></h3>' +
+          '<div class="case__kicker">' + esc(c.kicker) + '</div>' +
+          '<h3><a href="' + esc(c.slug) + '">' + esc(c.title) + '</a></h3>' +
           '<p>' + esc(c.summary) + '</p>' +
-          '<div class="case__metric"><span class="fig">' + esc(c.metric) + '</span>' +
-            '<span>' + esc(c.metricLabel) + '</span></div>' +
-          '<a class="case__more" href="' + esc(c.slug) + '">Read the case study ' + ARROW + '</a>' +
+          '<div class="case__metric">' +
+            '<span class="fig">' + esc(c.metric) + '</span>' +
+            '<span>' + esc(c.metricLabel) + '</span>' +
+          '</div>' +
+          '<div class="chips">' + c.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<a class="case__more" href="' + esc(c.slug) + '">Read full case study ' + ARROW + '</a>' +
         '</div>' + plate +
       '</article>';
     }).join('');
@@ -121,37 +235,173 @@
     caseVideos(el);
   };
 
-  /* Only play a card's video while it is actually on screen, and never at all
-     for visitors who asked for reduced motion — they keep the poster still. */
   function caseVideos(root) {
     const vids = $$('[data-case-video]', root);
     if (!vids.length) return;
-
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     if (!('IntersectionObserver' in window)) {
       vids.forEach(function (v) { v.preload = 'metadata'; v.play().catch(function () {}); });
       return;
     }
-
     const io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         const v = e.target;
         if (e.isIntersecting) {
           if (v.preload !== 'auto') v.preload = 'auto';
-          v.play().catch(function () {});   // autoplay blocked → poster stays
+          v.play().catch(function () {});
         } else if (!v.paused) {
           v.pause();
         }
       });
     }, { threshold: 0.25 });
-
     vids.forEach(function (v) { io.observe(v); });
   }
 
+  /* -------------------- Interactive Projects Hub -------------------------- */
+  render.projects = function (el) {
+    const cats = ['All'].concat(PROJECTS.map(function (p) { return p.cat; })
+      .filter(function (c, i, a) { return a.indexOf(c) === i; }).sort());
+
+    const toolbarHTML = '<div class="projects-toolbar">' +
+      '<div class="filters" role="group" aria-label="Filter projects by category">' +
+        cats.map(function (c, i) {
+          const count = c === 'All' ? PROJECTS.length : PROJECTS.filter(function (p) { return p.cat === c; }).length;
+          return '<button class="filter" type="button" data-cat="' + esc(c) + '" aria-pressed="' +
+            (i === 0 ? 'true' : 'false') + '">' + esc(c) + ' (' + count + ')</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="search-box">' +
+        SEARCH_ICON +
+        '<input type="search" placeholder="Search projects by tech, keyword..." aria-label="Search projects">' +
+      '</div>' +
+    '</div>';
+
+    const cardsHTML = '<div class="grid-projects" data-grid>' + PROJECTS.map(function (p, idx) {
+      const links = [];
+      if (p.featured) links.push('<a href="' + esc(p.featured) + '">Case Study</a>');
+      if (p.repo) links.push('<a href="' + esc(p.repo) + '" target="_blank" rel="noopener">Code ↗</a>');
+
+      return '<article class="project reveal' + (p.featured ? ' project--featured' : '') + '" data-cat="' + esc(p.cat) + '" data-idx="' + idx + '">' +
+        '<div class="project__top">' +
+          '<span class="project__cat-badge">' + esc(p.cat) + '</span>' +
+          (p.featured ? '<span class="status-badge" style="font-size:0.68rem;padding:0.15rem 0.5rem">Featured</span>' : '') +
+        '</div>' +
+        '<h3>' + esc(p.name) + '</h3>' +
+        '<p>' + esc(p.desc) + '</p>' +
+        '<div class="project__foot">' +
+          '<span class="project__stat">' + esc(p.stat) + '</span>' +
+          '<div class="chips">' + p.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<div class="project__actions">' +
+            '<button type="button" class="btn btn--sm" data-quickview="' + idx + '">Quick View</button>' +
+            '<div class="project__links">' + links.join('') + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</article>';
+    }).join('') + '</div>';
+
+    el.innerHTML = toolbarHTML + cardsHTML;
+
+    // Filter & Search Logic
+    const searchInput = $('input[type="search"]', el);
+    let activeCat = 'All';
+    let searchQuery = '';
+
+    function applyFilterAndSearch() {
+      const q = searchQuery.toLowerCase().trim();
+      let matchedCount = 0;
+      $$('.project', el).forEach(function (card) {
+        const cat = card.dataset.cat;
+        const idx = parseInt(card.dataset.idx, 10);
+        const p = PROJECTS[idx];
+        const text = (p.name + ' ' + p.desc + ' ' + p.cat + ' ' + p.tech.join(' ') + ' ' + p.stat).toLowerCase();
+
+        const catMatches = (activeCat === 'All' || cat === activeCat);
+        const searchMatches = (!q || text.indexOf(q) !== -1);
+
+        const show = catMatches && searchMatches;
+        card.hidden = !show;
+        if (show) matchedCount++;
+      });
+    }
+
+    $$('.filter', el).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        activeCat = btn.dataset.cat;
+        $$('.filter', el).forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        applyFilterAndSearch();
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        searchQuery = searchInput.value;
+        applyFilterAndSearch();
+      });
+    }
+
+    // Interactive Quick View Modal
+    $$('[data-quickview]', el).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const idx = parseInt(btn.dataset.quickview, 10);
+        openProjectModal(PROJECTS[idx]);
+      });
+    });
+  }
+
+  function openProjectModal(p) {
+    let overlay = $('#project-modal');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'project-modal';
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = '<div class="modal-card">' +
+        '<button class="modal-close" type="button" aria-label="Close dialog">✕</button>' +
+        '<div id="modal-content"></div>' +
+      '</div>';
+      document.body.appendChild(overlay);
+
+      $('.modal-close', overlay).addEventListener('click', function () {
+        overlay.dataset.open = 'false';
+      });
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) overlay.dataset.open = 'false';
+      });
+
+      window.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && overlay.dataset.open === 'true') {
+          overlay.dataset.open = 'false';
+        }
+      });
+    }
+
+    const content = $('#modal-content', overlay);
+    const links = [];
+    if (p.featured) links.push('<a class="btn btn--primary" href="' + esc(p.featured) + '">Read Full Case Study ' + ARROW + '</a>');
+    if (p.repo) links.push('<a class="btn" href="' + esc(p.repo) + '" target="_blank" rel="noopener">View Source Code ↗</a>');
+
+    content.innerHTML = '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">' +
+      '<span class="project__cat-badge">' + esc(p.cat) + '</span>' +
+      '<span class="stat-item__label" style="font-family:var(--font-mono)">' + esc(p.stat) + '</span>' +
+    '</div>' +
+    '<h2 style="font-size:1.65rem;font-weight:800;margin-bottom:1rem;color:var(--text)">' + esc(p.name) + '</h2>' +
+    '<p style="font-size:1.02rem;color:var(--text-secondary);line-height:1.65;margin-bottom:1.5rem">' + esc(p.desc) + '</p>' +
+    '<div style="margin-bottom:1.75rem"><span class="label" style="display:block;margin-bottom:0.6rem">Technologies &amp; Libraries</span>' +
+      '<div class="chips">' + p.tech.map(function (t) { return '<span class="chip" style="font-size:0.8rem;padding:0.35rem 0.75rem">' + esc(t) + '</span>'; }).join('') + '</div>' +
+    '</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:0.75rem;padding-top:1.25rem;border-top:1px solid var(--border)">' +
+      links.join('') +
+    '</div>';
+
+    overlay.dataset.open = 'true';
+  }
+
+  /* ------------------- Interactive Publications Accordion ----------------- */
   render.papers = function (el) {
     el.className = 'papers';
-    el.innerHTML = PAPERS.map(function (p, i) {
+    el.innerHTML = PAPERS.map(function (p) {
       const authors = p.authors.length
         ? '<p class="paper__authors">' + p.authors.map(function (a) {
             return a === 'Jai Sharma' ? '<b>Jai Sharma</b>' : esc(a);
@@ -163,26 +413,26 @@
       let inner = '<div class="paper__inner">';
       if (p.headline) inner += '<p class="paper__lede">' + esc(p.headline) + '</p>';
       if (p.problem) {
-        inner += '<div class="prose"><span class="label" style="display:block;margin-bottom:.9rem">The problem</span><p>' + esc(p.problem) + '</p>';
-        if (p.data) inner += '<p style="font-size:.88rem;color:var(--dim)"><b>Data:</b> ' + esc(p.data) + '</p>';
+        inner += '<div><span class="label" style="display:block;margin-bottom:.6rem">Problem Statement</span><p style="color:var(--text-secondary);font-size:0.95rem;line-height:1.6">' + esc(p.problem) + '</p>';
+        if (p.data) inner += '<p style="font-size:.84rem;color:var(--text-muted);margin-top:0.4rem"><b>Corpus / Dataset:</b> ' + esc(p.data) + '</p>';
         inner += '</div>';
       }
       if (p.did && p.did.length) {
-        inner += '<div><span class="label" style="display:block;margin-bottom:.9rem">What I did</span><ol class="stepped">' +
+        inner += '<div><span class="label" style="display:block;margin-bottom:.6rem">What I Did</span><ol class="stepped">' +
           p.did.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ol></div>';
       }
       if (p.results && p.results.length) {
-        inner += '<div><span class="label" style="display:block;margin-bottom:.9rem">Results</span><dl class="kv">' +
+        inner += '<div><span class="label" style="display:block;margin-bottom:.6rem">Key Results</span><dl class="kv">' +
           p.results.map(function (r) {
             return '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>';
           }).join('') + '</dl></div>';
       }
       if (p.compare && p.compare.length) {
         const max = Math.max.apply(null, p.compare.map(function (c) { return c[1]; }));
-        inner += '<div data-bars><span class="label" style="display:block;margin-bottom:1.1rem">' +
+        inner += '<div data-bars><span class="label" style="display:block;margin-bottom:.8rem">' +
           esc(p.compareLabel) + '</span><div class="bars">' +
           p.compare.map(function (c, idx) {
-            return '<div class="bar__row' + (idx === 0 ? ' bar__row--lead' : '') + '">' +
+            return '<div class="bar__row">' +
               '<div class="bar__top"><span class="bar__name">' + esc(c[0]) + '</span>' +
               '<span class="bar__val">' + esc(c[1]) + '</span></div>' +
               '<div class="bar__track"><div class="bar__fill" style="transition-delay:' +
@@ -191,17 +441,17 @@
           }).join('') + '</div></div>';
       }
       if (p.why) {
-        inner += '<div style="grid-column:1/-1"><span class="label" style="display:block;margin-bottom:.9rem">Why it matters</span>' +
-          '<p class="finding" style="font-size:1.12rem">' + esc(p.why) + '</p></div>';
+        inner += '<div style="grid-column:1/-1"><span class="label" style="display:block;margin-bottom:.6rem">Why It Matters</span>' +
+          '<p class="finding">' + esc(p.why) + '</p></div>';
       }
-      inner += '<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:1.5rem;align-items:center;justify-content:space-between">' +
+      inner += '<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;padding-top:1rem;border-top:1px solid var(--border-subtle)">' +
         '<div class="chips">' + p.tools.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
-        '<a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener">Read on ' + esc(p.venue.split(' · ')[0]) + ' ' + ARROW + '</a></div>';
+        '<a class="btn btn--sm btn--primary" href="' + esc(p.url) + '" target="_blank" rel="noopener">Access Paper on ' + esc(p.venue.split(' · ')[0]) + ' ' + ARROW + '</a></div>';
       inner += '</div>';
 
       if (!hasDeep) {
         inner = '<div class="paper__inner"><p class="paper__lede">' + esc(p.headline) + '</p>' +
-          '<div style="grid-column:1/-1"><a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener">Read the chapter ' + ARROW + '</a></div></div>';
+          '<div style="grid-column:1/-1"><a class="btn btn--sm btn--primary" href="' + esc(p.url) + '" target="_blank" rel="noopener">Read Book Chapter ' + ARROW + '</a></div></div>';
       }
 
       const id = 'paper-' + esc(p.id);
@@ -228,217 +478,173 @@
     });
   };
 
-  render.projects = function (el) {
-    const cats = ['All'].concat(PROJECTS.map(function (p) { return p.cat; })
-      .filter(function (c, i, a) { return a.indexOf(c) === i; }).sort());
-
-    const filters = '<div class="filters" role="group" aria-label="Filter projects by area">' +
-      cats.map(function (c, i) {
-        return '<button class="filter" type="button" data-cat="' + esc(c) + '" aria-pressed="' +
-          (i === 0 ? 'true' : 'false') + '">' + esc(c) + '</button>';
-      }).join('') + '</div>';
-
-    const cards = '<div class="grid-projects" data-grid>' + PROJECTS.map(function (p) {
-      const links = [];
-      if (p.featured) links.push('<a href="' + esc(p.featured) + '">Case study</a>');
-      if (p.repo)     links.push('<a href="' + esc(p.repo) + '" target="_blank" rel="noopener">Code</a>');
-      var cls = 'project reveal' + (p.featured ? ' project--featured' : '');
-      return '<article class="' + cls + '" data-cat="' + esc(p.cat) + '"' +
-        (p.featured ? ' data-href="' + esc(p.featured) + '"' : '') + '>' +
-        (p.featured ? '<div class="project__overlay"><span>View case study &#8594;</span></div>' : '') +
-        '<div class="project__cat">' + (p.featured ? '<span class="project__star" aria-hidden="true">★</span>' : '') +
-          '<span class="label">' + esc(p.cat) + '</span></div>' +
-        '<h3>' + esc(p.name) + '</h3>' +
-        '<p>' + esc(p.desc) + '</p>' +
-        '<div class="project__foot">' +
-          '<span class="project__stat">' + esc(p.stat) + '</span>' +
-          '<div class="chips">' + p.tech.slice(0, 4).map(function (t) {
-            return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
-          (links.length ? '<div class="project__links">' + links.join('') + '</div>' : '') +
-        '</div>' +
-      '</article>';
-    }).join('') + '</div>';
-
-    el.innerHTML = filters + cards;
-
-    const count = document.createElement('p');
-    count.className = 'label';
-    count.style.marginTop = '1.75rem';
-    el.appendChild(count);
-    const setCount = function (n) { count.textContent = n + (n === 1 ? ' project' : ' projects'); };
-    setCount(PROJECTS.length);
-
-    $$('.filter', el).forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        const cat = btn.dataset.cat;
-        $$('.filter', el).forEach(function (b) {
-          b.setAttribute('aria-pressed', String(b === btn));
-        });
-        let n = 0;
-        $$('.project', el).forEach(function (card) {
-          const show = cat === 'All' || card.dataset.cat === cat;
-          card.hidden = !show;
-          if (show) n++;
-        });
-        setCount(n);
-      });
-    });
-
-    $$('.project--featured', el).forEach(function (card) {
-      card.addEventListener('click', function (e) {
-        if (e.target.closest('a')) return;
-        window.location.href = card.dataset.href;
-      });
-    });
-  };
-
-  render.interests = function (el) {
-    el.className = 'interests';
-    el.innerHTML = INTERESTS.map(function (i) {
-      return '<article class="interest reveal">' +
-        '<h3>' + esc(i.name) + '</h3>' +
-        '<p>' + esc(i.body) + '</p>' +
-      '</article>';
-    }).join('');
-  };
-
-  render.life = function (el) {
-    el.className = 'life';
-    el.innerHTML = LIFE.map(function (l) {
-      return '<article class="life__item reveal">' +
-        '<h3>' + esc(l.title) + '</h3>' +
-        '<span class="label life__meta">' + esc(l.meta) + '</span>' +
-        '<p>' + esc(l.body) + '</p>' +
-        (l.why ? '<p class="life__why">' + esc(l.why) + '</p>' : '') +
-      '</article>';
-    }).join('');
-  };
-
-  render.posts = function (el) {
-    if (!POSTS.length) {
-      el.innerHTML = '<p class="lede" style="max-width:52ch">Nothing published yet. ' +
-        'The first pieces are being written up — they\'ll appear here.</p>';
-      return;
-    }
-    el.className = 'posts';
-    el.innerHTML = POSTS.map(function (p) {
-      var meta = esc(p.dateLabel || p.date);
-      if (p.readingTime) meta += ' · ' + p.readingTime + ' min read';
-      return '<article class="post-card reveal">' +
-        (p.cover ? '<a class="post-card__cover" href="' + esc(p.slug) + '" tabindex="-1" aria-hidden="true">' +
-          '<img src="' + esc(p.cover) + '" alt="" loading="lazy"></a>' : '') +
-        '<div class="post-card__body">' +
-          '<span class="label">' + meta + '</span>' +
-          '<h3><a href="' + esc(p.slug) + '">' + esc(p.title) + '</a></h3>' +
-          '<p>' + esc(p.excerpt) + '</p>' +
-          (p.tags && p.tags.length ? '<div class="chips">' + p.tags.map(function (t) {
-            return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
-        '</div>' +
-      '</article>';
-    }).join('');
-  };
-
-  /* Home page teaser — the two most recent, or nothing at all. */
-  render.postsTeaser = function (el) {
-    var section = el.closest('section');
-    if (!POSTS.length) { if (section) section.hidden = true; return; }
-    el.className = 'posts';
-    el.innerHTML = POSTS.slice(0, 2).map(function (p) {
-      return '<article class="post-card reveal">' +
-        (p.cover ? '<a class="post-card__cover" href="' + esc(p.slug) + '" tabindex="-1" aria-hidden="true">' +
-          '<img src="' + esc(p.cover) + '" alt="" loading="lazy"></a>' : '') +
-        '<div class="post-card__body">' +
-          '<span class="label">' + esc(p.dateLabel || p.date) + '</span>' +
-          '<h3><a href="' + esc(p.slug) + '">' + esc(p.title) + '</a></h3>' +
-          '<p>' + esc(p.excerpt) + '</p>' +
-        '</div></article>';
-    }).join('');
-  };
-
-  render.docs = function (el) {
-    el.className = 'docs';
-    el.innerHTML = DOCS.map(function (d) {
-      return '<a class="doc reveal" href="' + esc(d.file) + '" target="_blank" rel="noopener">' +
-        '<span>' + esc(d.label) + '</span>' +
-        '<span class="doc__kind">' + esc(d.kind) + '</span></a>';
-    }).join('');
-  };
-
+  /* ------------------- Interactive Experience Switcher -------------------- */
   render.experience = function (el) {
-    let html = '';
-
-    if (WORK.roles.length) {
-      html += '<div class="timeline">' + WORK.roles.map(function (r, i) {
-        // A role can carry a date range, its own `period` text, or neither —
-        // the lab entry deliberately shows involvement without dates.
-        const period = r.period || (r.start && r.end ? r.start + ' — ' + r.end : r.start || r.end || '');
-        return '<div class="tl reveal' + (i === 0 ? ' tl--now' : '') + '">' +
-          (period ? '<span class="label tl__period">' + esc(period) + '</span>' : '') +
+    let rolesHTML = '<div class="timeline" id="exp-roles">' + WORK.roles.map(function (r, i) {
+      const period = r.period || (r.start && r.end ? r.start + ' — ' + r.end : r.start || r.end || '');
+      return '<div class="tl reveal' + (i === 0 ? ' tl--now' : '') + '">' +
+        '<div class="tl__header">' +
+          (period ? '<span class="tl__period">' + esc(period) + '</span>' : '') +
           '<h3>' + esc(r.title) + '</h3>' +
           '<p class="tl__where">' + esc(r.company) + (r.location ? ' · ' + esc(r.location) : '') + '</p>' +
-          (r.bullets && r.bullets.length ? '<ul class="tl__bullets">' + r.bullets.map(function (b) {
-            return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>' : '') +
-          (r.tech && r.tech.length ? '<div class="chips">' + r.tech.map(function (t) {
-            return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
-          // Linked to the full-size file: these schematics carry small labels
-          // that are unreadable once the figure is a phone-width thumbnail.
-          (r.image ? '<figure class="tl__fig">' +
-            '<a href="' + esc(r.image) + '" target="_blank" rel="noopener">' +
-            '<img src="' + esc(r.image) + '" alt="' + esc(r.imageAlt) +
-            '" loading="lazy" width="1440" height="600"></a>' +
-            '<figcaption>Tap to enlarge</figcaption></figure>' : '') +
-        '</div>';
-      }).join('') + '</div>';
-    }
+        '</div>' +
+        (r.bullets && r.bullets.length ? '<ul class="tl__bullets">' + r.bullets.map(function (b) {
+          return '<li>' + esc(b) + '</li>'; }).join('') + '</ul>' : '') +
+        (r.tech && r.tech.length ? '<div class="chips">' + r.tech.map(function (t) {
+          return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+        (r.image ? '<figure class="tl__fig">' +
+          '<a href="' + esc(r.image) + '" target="_blank" rel="noopener">' +
+          '<img src="' + esc(r.image) + '" alt="' + esc(r.imageAlt) + '" loading="lazy" width="1440" height="600"></a>' +
+          '</figure>' : '') +
+      '</div>';
+    }).join('') + '</div>';
 
-    el.innerHTML = html;
-    el.hidden = !WORK.roles.length;
-    const heading = document.querySelector('[data-experience-heading]');
-    if (heading) heading.hidden = !WORK.roles.length;
+    let eduHTML = '<div class="timeline" id="exp-edu" hidden>' + WORK.education.map(function (e) {
+      return '<div class="tl reveal">' +
+        '<div class="tl__header">' +
+          '<span class="tl__period">' + esc(e.period) + '</span>' +
+          '<h3>' + esc(e.degree) + '</h3>' +
+          '<p class="tl__where">' + esc(e.school) + ' · ' + esc(e.location) + '</p>' +
+        '</div>' +
+        (e.detail ? '<p style="color:var(--text-secondary);font-size:0.95rem">' + esc(e.detail) + '</p>' : '') +
+        (e.courses.length ? '<div class="chips">' + e.courses.map(function (c) {
+          return '<span class="chip">' + esc(c) + '</span>'; }).join('') + '</div>' : '') +
+      '</div>';
+    }).join('') + '</div>';
+
+    const tabsHTML = '<div class="timeline-toggle" role="tablist">' +
+      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-roles" aria-selected="true" data-target="exp-roles">Work &amp; Research Roles (' + WORK.roles.length + ')</button>' +
+      '<button class="timeline-toggle-btn" type="button" role="tab" id="tab-edu" aria-selected="false" data-target="exp-edu">Academic Background (' + WORK.education.length + ')</button>' +
+    '</div>';
+
+    el.innerHTML = tabsHTML + rolesHTML + eduHTML;
+
+    $$('.timeline-toggle-btn', el).forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        $$('.timeline-toggle-btn', el).forEach(function (b) { b.setAttribute('aria-selected', 'false'); });
+        btn.setAttribute('aria-selected', 'true');
+        const targetId = btn.getAttribute('data-target');
+        $('#exp-roles', el).hidden = targetId !== 'exp-roles';
+        $('#exp-edu', el).hidden = targetId !== 'exp-edu';
+      });
+    });
   };
 
   render.education = function (el) {
-    el.innerHTML = '<div class="timeline">' + WORK.education.map(function (e, i) {
-      return '<div class="tl reveal' + (i === 0 ? ' tl--now' : '') + '">' +
-        '<span class="label tl__period">' + esc(e.period) + '</span>' +
+    el.innerHTML = '<div class="timeline">' + WORK.education.map(function (e) {
+      return '<div class="tl reveal">' +
+        '<span class="tl__period">' + esc(e.period) + '</span>' +
         '<h3>' + esc(e.degree) + '</h3>' +
         '<p class="tl__where">' + esc(e.school) + ' · ' + esc(e.location) + '</p>' +
-        (e.detail ? '<p class="tl__detail">' + esc(e.detail) + '</p>' : '') +
+        (e.detail ? '<p style="color:var(--text-secondary);font-size:0.95rem">' + esc(e.detail) + '</p>' : '') +
         (e.courses.length ? '<div class="chips">' + e.courses.map(function (c) {
           return '<span class="chip">' + esc(c) + '</span>'; }).join('') + '</div>' : '') +
       '</div>';
     }).join('') + '</div>';
   };
 
-  /* compact publication list used on the home and experience pages */
   render.publist = function (el) {
     el.innerHTML = '<div class="timeline">' + PAPERS.map(function (p) {
       return '<div class="tl reveal">' +
-        '<span class="label tl__period">' + esc(p.venue) + ' · ' + esc(p.year) + '</span>' +
-        '<h3 style="font-size:1.12rem">' + esc(p.title) + '</h3>' +
-        '<p style="margin-top:.9rem"><a class="doi" href="' + esc(p.url) + '" target="_blank" rel="noopener">' +
-          '<span class="doi__id">' + esc(p.doi) + '</span>' +
-          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">' +
-          '<path d="M3 8L8 3M8 3H4M8 3v4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-          '<span class="sr">, opens on the publisher’s site</span></a></p>' +
+        '<span class="tl__period">' + esc(p.venue) + ' · ' + esc(p.year) + '</span>' +
+        '<h3 style="font-size:1.15rem">' + esc(p.title) + '</h3>' +
+        '<p style="margin-top:.5rem"><a class="doi" href="' + esc(p.url) + '" target="_blank" rel="noopener">' +
+          '<span>' + esc(p.doi) + '</span>' +
+          '<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M3 8L8 3M8 3H4M8 3v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</a></p>' +
       '</div>';
     }).join('') + '</div>';
   };
 
-  /* ---------------------------- location strip --------------------------- */
-  /* Renders SITE.based as a single line. */
-  function availability() {
-    $$('[data-availability]').forEach(function (el) {
-      if (!SITE.based) { el.hidden = true; return; }
-      el.className = 'avail';
-      el.innerHTML = '<span class="label" style="color:var(--soft)">' + esc(SITE.based) + '</span>';
-      el.hidden = false;   // ships hidden so it never flashes as an empty box
+  render.posts = function (el) {
+    if (!POSTS.length) {
+      el.innerHTML = '<p class="lede">Dispatches and technical writeups in preparation.</p>';
+      return;
+    }
+    el.className = 'grid-projects';
+    el.innerHTML = POSTS.map(function (p) {
+      var meta = esc(p.dateLabel || p.date);
+      if (p.readingTime) meta += ' · ' + p.readingTime + ' min read';
+      return '<article class="project reveal">' +
+        '<span class="project__cat-badge">' + meta + '</span>' +
+        '<h3><a href="' + esc(p.slug) + '">' + esc(p.title) + '</a></h3>' +
+        '<p>' + esc(p.excerpt) + '</p>' +
+        (p.tags && p.tags.length ? '<div class="chips">' + p.tags.map(function (t) {
+          return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+        '<div style="margin-top:auto;padding-top:1rem">' +
+          '<a class="btn btn--sm btn--primary" href="' + esc(p.slug) + '">Read Article ' + ARROW + '</a>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+  };
+
+  /* -------------------------- Contact Form -------------------------------- */
+  function contactForm() {
+    const form = $('[data-contact-form]');
+    if (!form) return;
+    const status = $('.form__status', form);
+    const note   = $('[data-form-note]');
+    const local  = location.protocol === 'file:' ||
+                  /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    const mode   = SITE.formspreeId ? 'formspree'
+                 : (SITE.netlifyForms && !local) ? 'netlify'
+                 : 'mailto';
+
+    if (note) {
+      note.textContent = mode === 'mailto'
+        ? 'Direct email transmission to ' + SITE.email + '.'
+        : 'Transmits securely directly to Jai’s inbox.';
+    }
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      const fd      = new FormData(form);
+      const email   = (fd.get('email')   || '').toString().trim();
+      const subject = (fd.get('subject') || '').toString().trim();
+      const message = (fd.get('message') || '').toString().trim();
+
+      if (fd.get('bot-field')) return;
+      if (!email || !message) {
+        status.dataset.state = 'err';
+        status.textContent = 'Please provide both your email address and a message.';
+        return;
+      }
+
+      if (mode === 'mailto') {
+        const body = message + '\n\n— ' + email;
+        window.location.href = 'mailto:' + SITE.email +
+          '?subject=' + encodeURIComponent(subject || 'Portfolio Inquiry') +
+          '&body=' + encodeURIComponent(body);
+        status.dataset.state = 'ok';
+        status.textContent = 'Opening your email client…';
+        return;
+      }
+
+      status.dataset.state = 'busy';
+      status.textContent = 'Sending message…';
+
+      fetch('https://formspree.io/f/' + SITE.formspreeId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: email, subject: subject, message: message })
+      })
+      .then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        form.reset();
+        status.dataset.state = 'ok';
+        status.textContent = 'Message sent successfully! Jai will reply soon.';
+        showToast('Message sent cleanly to Jai Sharma.');
+      })
+      .catch(function () {
+        status.dataset.state = 'err';
+        status.textContent = 'Could not send online — opening mail client instead.';
+        window.location.href = 'mailto:' + SITE.email +
+          '?subject=' + encodeURIComponent(subject || 'Portfolio Inquiry') +
+          '&body=' + encodeURIComponent(message + '\n\n— ' + email);
+      });
     });
   }
 
-  /* --------------------------- resume button ----------------------------- */
-  /* Buttons ship hidden and reveal only once the file is on the server, so no
-     one clicks through to a 404. Drop assets/documents/resume.pdf in place. */
   function resume() {
     const btns = $$('[data-resume]');
     if (!btns.length) return;
@@ -448,136 +654,27 @@
         b.hidden = false;
       });
     };
-    if (location.protocol === 'file:') { show(); return; }  // can't probe file://
+    if (location.protocol === 'file:') { show(); return; }
     fetch(SITE.resumeUrl, { method: 'HEAD' })
       .then(function (r) { if (r.ok) show(); })
-      .catch(function () { /* leave hidden */ });
+      .catch(function () {});
   }
 
-  /* ---------------------------- contact form ----------------------------- */
-  function contactForm() {
-    const form = $('[data-contact-form]');
-    if (!form) return;
-
-    const status = $('.form__status', form);
-    const note   = $('[data-form-note]');
-
-    // Netlify only captures forms on a deployed Netlify site, so locally there
-    // is nothing to POST to. Formspree accepts submissions from any origin,
-    // localhost included, so it needs no such guard and can be tested here.
-    const local = location.protocol === 'file:' ||
-                  /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-
-    const mode = SITE.formspreeId ? 'formspree'
-               : (SITE.netlifyForms && !local) ? 'netlify'
-               : 'mailto';
-
-    if (note) {
-      note.textContent = mode === 'mailto'
-        ? 'This opens your own mail app. Or write to ' + SITE.email + ' directly.'
-        : 'Goes straight to my inbox.';
-    }
-
-    function openMailClient(email, subject, message) {
-      const body = message + '\n\n— ' + email;
-      window.location.href = 'mailto:' + SITE.email +
-        '?subject=' + encodeURIComponent(subject || 'Portfolio enquiry') +
-        '&body=' + encodeURIComponent(body);
-    }
-
-    /* Optional mirror into a Google Sheet. Fire-and-forget: the primary capture
-       is the source of truth, so a failure here must never block the visitor. */
-    function mirrorToSheet(payload) {
-      if (!SITE.sheetWebhook) return;
-      fetch(SITE.sheetWebhook, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      }).catch(function () { /* the Netlify record still has it */ });
-    }
-
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-
-      const fd      = new FormData(form);
-      const email   = (fd.get('email')   || '').toString().trim();
-      const subject = (fd.get('subject') || '').toString().trim();
-      const message = (fd.get('message') || '').toString().trim();
-
-      if (fd.get('bot-field')) return;        // honeypot tripped — drop silently
-
-      if (!email || !message) {
-        status.dataset.state = 'err';
-        status.textContent = 'Add your email and a message so Jai can reply.';
-        return;
-      }
-
-      if (mode === 'mailto') {
-        openMailClient(email, subject, message);
-        status.dataset.state = 'ok';
-        status.textContent = 'Opening your mail app…';
-        return;
-      }
-
-      status.dataset.state = 'busy';
-      status.textContent = 'Sending…';
-
-      let request;
-      if (mode === 'netlify') {
-        // Netlify wants the whole form url-encoded, posted back to the page.
-        const body = new URLSearchParams();
-        fd.forEach(function (v, k) { body.append(k, v); });
-        request = fetch(location.pathname, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: body.toString()
-        });
-      } else {
-        request = fetch('https://formspree.io/f/' + SITE.formspreeId, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({ email: email, subject: subject, message: message })
-        });
-      }
-
-      request
-        .then(function (r) {
-          if (!r.ok) throw new Error('http ' + r.status);
-          mirrorToSheet({ email: email, subject: subject, message: message,
-                          sentAt: new Date().toISOString() });
-          form.reset();
-          status.dataset.state = 'ok';
-          status.textContent = 'Sent. Jai will get back to you.';
-        })
-        .catch(function () {
-          // Never strand someone who took the time to write — hand them their
-          // own mail client with the message already in it.
-          status.dataset.state = 'err';
-          status.textContent = 'That did not send — opening your mail app instead.';
-          openMailClient(email, subject, message);
-        });
-    });
-  }
-
-  /* ------------------------------- boot ---------------------------------- */
+  /* ------------------------------- Boot ---------------------------------- */
   function boot() {
-    nav();
+    buildHeader();
+    navHighlight();
+    setupCopyButtons();
+    setupBackToTop();
+
     $$('[data-render]').forEach(function (el) {
       const fn = render[el.dataset.render];
       if (fn) fn(el);
     });
-    // Keep "Writing" out of the nav until there is something to read.
-    if (typeof POSTS !== 'undefined' && !POSTS.length) {
-      $$('.nav__link[href="writing.html"], .nav__link[href="/writing.html"]')
-        .forEach(function (a) { a.hidden = true; });
-    }
 
-    availability();
     resume();
     contactForm();
 
-    // fill any element marked with a value from SITE
     $$('[data-site]').forEach(function (el) {
       const key = el.dataset.site;
       const val = key.split('.').reduce(function (o, k) { return o && o[k]; }, SITE);
