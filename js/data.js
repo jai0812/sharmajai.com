@@ -355,7 +355,8 @@ const PAPERS = [
 /* =========================== LIVE PRODUCTS ================================ */
 /* Things running in public right now. Shown as browser windows on the home
    page, with the real address in the address bar. `shot` is a screenshot in
-   assets/products/ (any width ≥1200px; the frame crops from the top).        */
+   assets/products/ (any width ≥1200px). Frames are 16:10 unless `ratio`
+   is set; they crop from the top.                                          */
 const PRODUCTS = [
   {
     name: 'SharmaJai Job Portal',
@@ -363,6 +364,7 @@ const PRODUCTS = [
     host: 'jobs.sharmajai.com',
     repo: 'https://github.com/jai0812/job_portal',
     shot: 'assets/products/job-portal.jpg',
+    ratio: '2 / 1',
     shotAlt: 'The job portal home page: the headline "Jobs from the source, minutes after they\'re posted" above a departure-board table of new postings',
     summary: 'Reads 526 employers\' own career sites and 43 job lists every 10–30 minutes, de-duplicates them into one table, and shows each US employer\'s real H-1B approval history from USCIS data.',
     facts: [['526', 'career sites read'], ['~200k', 'open jobs indexed'], ['10 min', 'refresh for top companies']],
@@ -378,17 +380,6 @@ const PRODUCTS = [
     summary: 'Day-ahead arrival forecasts with calibrated ranges for every Blue, Red and Green Line train, checked against 12.5 million real arrivals. Replay any morning commute on a live map.',
     facts: [['12.5M', 'arrivals checked'], ['75–82%', 'inside an 80% range'], ['104', 'stations']],
     tech: ['Python', 'DuckDB', 'LightGBM', 'Conformal prediction', 'React', 'MapLibre']
-  },
-  {
-    name: 'Piano Learn',
-    url: 'https://jai0812.github.io/piano-learn/',
-    host: 'jai0812.github.io/piano-learn',
-    repo: 'https://github.com/jai0812/piano-learn',
-    shot: 'assets/products/piano-learn.jpg',
-    shotAlt: 'Falling note tiles over a full 88-key piano keyboard, each tile labelled with the laptop key to press',
-    summary: 'Turns a laptop keyboard into an 88-key piano: falling tiles, a sampled grand piano, 26 songs at three levels, and MIDI import. One HTML file, no dependencies.',
-    facts: [['88', 'keys'], ['26', 'songs'], ['0', 'dependencies']],
-    tech: ['JavaScript', 'Web Audio API', 'Canvas']
   }
 ];
 
@@ -512,6 +503,209 @@ const PROJECTS = [
     stat: 'PostgreSQL', tech: ['PostgreSQL', 'SQL'],
     repo: 'https://github.com/jai0812/sql-courseqwork' }
 ];
+
+/* ======================= SYSTEM DESIGN DIAGRAMS =========================== */
+/* One diagram per project, keyed by its name in PROJECTS. Shown in the
+   project's Quick view and, for case studies, on the case-study page.
+   Each layer is L(name, [[component, detail], …], highlight). Data flows top
+   to bottom; mark the layer that does the core work with `true`.            */
+const L = (layer, nodes, hl) => ({ layer: layer, nodes: nodes, hl: !!hl });
+
+const ARCH = {
+  'SharmaJai Job Portal': {
+    note: 'Two refresh lanes share one database: top companies and GitHub lists every 10 minutes, everything else every 30. Job lists are built in short-lived streaming processes, which keeps peak memory near 90 MB on a small server, and a self-check every 5 minutes restarts the app cleanly if it ever loses its files.',
+    layers: [
+      L('Sources', [['GitHub job lists', '43 curated lists'], ['Employer career sites', '526 · Workday, Greenhouse, Lever, Ashby…'], ['University career sites', 'often H-1B cap-exempt'], ['LinkedIn via Apify', 'on demand, budget-capped']]),
+      L('Collection', [['Fast lane', 'top companies + lists · every 10 min'], ['Full refresh', 'every source · every 30 min']]),
+      L('Processing', [['De-duplication', 'one row per real opening'], ['Tagging', 'sector · level · country · finance firm'], ['H-1B join', 'USCIS Employer Data Hub, FY2023']], true),
+      L('Storage', [['SQLite', 'jobs, users, application status']]),
+      L('Application', [['FastAPI', 'sessions · scrypt passwords · admin-only routes'], ['Plain-JS dashboard', 'no build step']]),
+      L('Outputs', [['Job tables & analytics', 'per-user applied / wait / decline'], ['Alerts', 'ntfy · Telegram · email'], ['Live README snapshot', 'rewritten after each refresh']])
+    ]
+  },
+
+  'Boston Subway Replay': {
+    note: 'Static first: the model never runs on a request path. Every release is an immutable, hash-stamped bundle of JSON, so rolling back the site rolls back its data, and the build fails loudly on missing columns, duplicate keys or any feature that peeks past 8 PM the night before.',
+    layers: [
+      L('Sources', [['MBTA LAMP', '370 daily Parquet files'], ['GTFS archive', '122 timetable versions']]),
+      L('Ingest', [['fetch', 'SHA-256 manifest · idempotent · retries']]),
+      L('Transform', [['DuckDB SQL', 'scheduled roster ⟕ recorded arrivals'], ['Data-quality flags', 'unobserved · gaps · conflicts'], ['Features', 'known by 8 PM the day before']]),
+      L('Model', [['Baselines', 'timetable · historical percentiles'], ['LightGBM quantiles', 'q10 · q50 · q90 per line'], ['Conformal calibration', 'CQR widening to an 80% range']], true),
+      L('Evaluate', [['Held-out test weeks', 'scored once · bootstrap CIs'], ['Release criteria', 'pre-registered pass / fail']]),
+      L('Serve', [['Versioned JSON release', 'release_id from input hashes'], ['React + MapLibre site', 'mbta.sharmajai.com'], ['FastAPI', 'read-only /v1 API']])
+    ]
+  },
+
+  'Boston Restaurant Saturation': {
+    note: 'The capacity model is trained only on "healthy" block groups (low violation and failure rates), so it learns what a sustainable restaurant market looks like instead of reproducing today\'s saturation.',
+    layers: [
+      L('Sources', [['US Census ACS', 'demographics'], ['OpenStreetMap', 'restaurant locations'], ['Boston food inspections', 'data.boston.gov'], ['LEHD LODES', 'daytime workers'], ['TIGER/Line', 'block-group shapes']]),
+      L('Ingest', [['Python scrapers', 'one per source · Selenium fallback']]),
+      L('Features', [['Hygiene risk', 'violations per block group'], ['Geo-join & aggregate', '681 block groups × 37 columns']]),
+      L('Models', [['Capacity regressor', 'LightGBM · restaurants per 1,000'], ['Cuisine recommender', 'kNN over demographic peers'], ['Survival classifier', 'LightGBM · P(open at 24 months)']], true),
+      L('API', [['FastAPI', 'per-block-group scores + what-if']]),
+      L('Interfaces', [['Next.js 14 map', 'GO / RISKY / AVOID verdicts'], ['Streamlit dashboard', 'risk distribution']])
+    ]
+  },
+
+  'AI Contract Management': {
+    note: 'AI proposes terms but never calculates money. Every extracted value must trace to a page and a quote in the source PDF, amendments append rather than overwrite, and the legacy Excel and SQL Server systems stay read-only.',
+    layers: [
+      L('Input', [['Contract PDFs', 'synthetic and public samples only']]),
+      L('Stage 1 · Ingestion', [['PyMuPDF parser', 'page text · blocks with bounding boxes'], ['Table detection', 'ruled lines or text alignment'], ['Quality flags', 'needs OCR · multi-column · suspect tables']]),
+      L('Stage 2 · Extraction', [['LLM extraction', 'two passes · pending provider approval'], ['Pydantic term schema', 'decimal-string money · ISO dates · evidence']], true),
+      L('Validation', [['Evidence check', 'each quote found on its cited page'], ['Extraction evaluator', 'precision · recall · per-field accuracy'], ['SME review', 'contract specialist sign-off']]),
+      L('Later phases', [['Deterministic rules', 'Decimal obligations'], ['Reconciliation', 'line by line vs legacy Excel / SQL Server'], ['Audit pack', 'versioned contract record']])
+    ]
+  },
+
+  'Piano Learn': {
+    note: 'One HTML file with no build step and no dependencies. The grand-piano samples stream from the web on first use, and the app falls back to a built-in synthesised sound when offline.',
+    layers: [
+      L('Input', [['Laptop keyboard', '32-key window, slides by octave'], ['Mouse', 'any of the 88 keys'], ['MIDI files', 'drag and drop']]),
+      L('Engine', [['Song model', '[notes, beats, flags] · auto levels'], ['MIDI parser', 'tempo map · running status'], ['Game loop', 'timing · score · streak · stars']], true),
+      L('Sound', [['Web Audio API', 'Salamander Yamaha C5 samples'], ['Signal chain', 'velocity filter · compressor · reverb']]),
+      L('Display', [['Canvas renderer', 'falling tiles aligned to 88 keys']]),
+      L('Storage', [['localStorage', 'recordings · imported songs']])
+    ]
+  },
+
+  'Hand OA X-ray Synthesis': {
+    note: 'The KL grade is injected into every UNet block by scale-and-shift, not just at the input, which is what the CycleGAN baseline had no way to do. Severe grades are seeded from real anatomy, and every evaluation uses patients never seen in training or generation.',
+    layers: [
+      L('Data', [['13,176 DIP-joint X-rays', '3,505 patients · BU + Tufts'], ['Patient-level split', '70 / 15 / 15 · zero leakage verified']]),
+      L('Compress', [['VAE encoder', '180×180 → 22×22×8 latent (16:1)']]),
+      L('Generate', [['KL-conditioned UNet', 'DDPM · classifier-free guidance'], ['Severe-grade seeding', 'KL3–4 from real KL0–2 re-noised at 60%'], ['CycleGAN baseline', 'unpaired healthy ↔ diseased']], true),
+      L('Decode', [['VAE decoder', '1,500 synthetic X-rays · 300 per grade']]),
+      L('Evaluate', [['ResNet-18 retraining', 'real + synthetic at 10–200% · 3 seeds'], ['Per-grade AUC & FID', 'held-out patients only']])
+    ]
+  },
+
+  'Human Activity Recognition on Spark': {
+    note: 'Broadcast-and-map: the 33 MB training set is shipped to each executor exactly once, and every test row is classified independently inside RDD.map(). No shuffle during inference, so it scales linearly with executor cores, on a laptop or on AWS EMR, with zero code changes.',
+    layers: [
+      L('Storage', [['UCI HAR files', 'local disk or Amazon S3']]),
+      L('Driver', [['Parse & label', 'zipWithIndex → (id, features, label)'], ['K sweep', 'K ∈ {1, 3, 5, 7, 11} → K = 11'], ['sc.broadcast()', '7,352 × 561 training set, sent once']]),
+      L('Executors', [['RDD.map() per partition', 'Euclidean distance to every training row'], ['Top-K + majority vote', 'no shuffle']], true),
+      L('Evaluate', [['Collect predictions', '2,947 test samples'], ['Metrics', 'accuracy · macro-F1 · confusion matrix']]),
+      L('Deploy', [['Laptop', 'local[*]'], ['AWS EMR', 'same code, data on S3']])
+    ]
+  },
+
+  'US Household Disability Prediction': {
+    note: 'Every pipeline uses the same split and the same preprocessing path, so the 36 results can be ranked directly against each other. Ranking is on minority-class recall and F1, never on overall accuracy.',
+    layers: [
+      L('Data', [['American Housing Survey 2023', '9,241 households × 145 features']]),
+      L('Prepare', [['Clean & encode', 'categorical survey fields'], ['Stratified split', 'held constant for every pipeline']]),
+      L('Balance', [['None', 'reference'], ['Random oversampling', ''], ['SMOTE', 'synthetic minority rows'], ['Random undersampling', '']]),
+      L('Classify', [['9 classifiers', 'each crossed with all 4 balancers → 36 pipelines']], true),
+      L('Score', [['Minority-class recall & F1', 'ranked across all 36'], ['Winner', 'random undersampling']])
+    ]
+  },
+
+  'Lane Advantage in Track & Field': {
+    note: 'Two separate questions, tested separately: whether lane predicts winning, and whether lane predicts finishing time. Lane predicts winning; it does not predict time.',
+    layers: [
+      L('Data', [['Web scrape', '866 entries · 100 / 200 / 400 m'], ['Championships', 'Olympics + Worlds, 2008–2023']]),
+      L('Clean', [['R · tidyverse', 'reshape · lane groups']]),
+      L('Test', [['Chi-square', 'lane × win'], ['Logistic regression', 'lane → win odds'], ['ANOVA', 'lane → finishing time']], true),
+      L('Confirm', [['Grouped lanes', 'inside · middle · outside'], ['Two-way ANOVA', 'lane × event'], ['Tukey HSD', 'pairwise differences']]),
+      L('Conclusion', [['Structural, not physiological', 'middle lanes win; no lane is faster']])
+    ]
+  },
+
+  'Multi-Agent RAG Assistant': {
+    note: 'Everything runs locally through Ollama: no document or question leaves the machine. Answers are scored for similarity against the passages they cite so likely hallucinations are flagged instead of presented as fact.',
+    layers: [
+      L('Documents', [['Research papers', 'PDF']]),
+      L('Index', [['Chunk & embed', 'LangChain'], ['FAISS', 'vector store']]),
+      L('Agents', [['Retriever', 'top passages per question'], ['Answerer', 'LLaMA 3 via Ollama']], true),
+      L('Check', [['Hallucination score', 'cosine similarity, answer vs sources']]),
+      L('Output', [['Answer + sources', 'low-support answers flagged']])
+    ]
+  },
+
+  'Face Recognition Attendance': {
+    layers: [
+      L('Capture', [['Webcam', 'OpenCV video stream']]),
+      L('Enrol', [['Face samples', 'per person, stored with an ID']]),
+      L('Recognise', [['Face detection', 'OpenCV'], ['LBPH recogniser', 'match against enrolled faces']], true),
+      L('Record', [['Attendance log', 'name · date · time']]),
+      L('Interfaces', [['Tkinter dashboard', 'daily and historical records'], ['WhatsApp alerts', 'Twilio']])
+    ]
+  },
+
+  'Anomaly Detection Visualizer': {
+    layers: [
+      L('Input', [['CSV upload', 'any tabular file']]),
+      L('Configure', [['Feature selection', 'pick the columns to analyse']]),
+      L('Detect', [['Isolation Forest', 'scikit-learn'], ['LOF · Z-score', 'alternative detectors']], true),
+      L('Visualise', [['Plotly charts', 'anomalies highlighted'], ['Streamlit app', 'runs in the browser']])
+    ]
+  },
+
+  'MovieLens 10M Analysis': {
+    layers: [
+      L('Data', [['MovieLens 10M', '10 million ratings']]),
+      L('Partition', [['Five partitions', 'processed separately']]),
+      L('Compute', [['Rating distribution', 'per partition and overall'], ['Manual sort', 'benchmarked against Python\'s sorted()']], true),
+      L('Report', [['Matplotlib charts', 'distributions and timings']])
+    ]
+  },
+
+  'NYC Taxi Analytics': {
+    layers: [
+      L('Data', [['2013 NYC taxi trips', 'CSV']]),
+      L('Stream', [['Row-by-row reader', 'pure Python, constant memory']]),
+      L('Aggregate', [['Most active taxis', 'trip counts'], ['Top earners', 'dollars per minute'], ['Revenue by hour', 'peak at 7 PM']], true),
+      L('Report', [['Jupyter notebook', 'tables and findings']])
+    ]
+  },
+
+  'Data Cleaning Toolkit': {
+    layers: [
+      L('Input', [['Raw DataFrame', 'Pandas']]),
+      L('Clean', [['Missing values', 'drop or impute'], ['Outliers', 'IQR rule']], true),
+      L('Transform', [['Scaling', 'min-max · z-score'], ['Encoding', 'one-hot']]),
+      L('Output', [['Clean dataset', 'with before / after plots']])
+    ]
+  },
+
+  'InventaBill': {
+    layers: [
+      L('Interface', [['Tkinter desktop app', 'billing · stock · reports']]),
+      L('Logic', [['Inventory', 'real-time stock updates'], ['Billing', 'GST · CGST / SGST split'], ['Sales analytics', 'daily and product totals']], true),
+      L('Storage', [['SQLite', 'products · invoices · sales']]),
+      L('Output', [['PDF invoices', 'FPDF']])
+    ]
+  },
+
+  'Insighta Platform': {
+    layers: [
+      L('Participants', [['Survey responses', 'from study participants']]),
+      L('Verification', [['Identity', 'tier 1'], ['Eligibility', 'tier 2'], ['Response quality', 'tier 3']], true),
+      L('Gate', [['Payout gate', 'releases only after every tier passes']]),
+      L('Backend', [['FastAPI + SQLAlchemy', 'studies · participants · payouts']]),
+      L('Researchers', [['Jinja2 dashboards', 'participation and quality analytics']])
+    ]
+  },
+
+  'Text Editor on a Linked List': {
+    layers: [
+      L('Input', [['Command line', 'insert · delete · find · save']]),
+      L('Core', [['Singly linked list', 'one node per line · cheap insert / delete']], true),
+      L('Storage', [['Text file', 'load and save']])
+    ]
+  },
+
+  'SQL Coursework': {
+    layers: [
+      L('Design', [['Normalised schema', 'entities and relationships']]),
+      L('Integrity', [['Constraints', 'keys · checks · referential integrity']], true),
+      L('Performance', [['Indexes', 'chosen per query pattern'], ['Query optimisation', 'reading plans in PostgreSQL']])
+    ]
+  }
+};
 
 /* ============================== INTERESTS ================================= */
 /* Problem areas, shown on the Experience page.                              */

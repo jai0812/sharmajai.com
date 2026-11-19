@@ -16,6 +16,7 @@ so a change there shows up everywhere at once.
 | To change… | Edit in `js/data.js` |
 |---|---|
 | Live products (browser-window cards on the home page) | `PRODUCTS` |
+| System-design diagrams (quick views and case studies) | `ARCH` |
 | All projects, filters and quick views | `PROJECTS` |
 | Case-study cards | `CASES` |
 | Jobs and education | `WORK.roles`, `WORK.education` |
@@ -30,11 +31,21 @@ themselves.
 
 ### Adding a live product
 
-1. Save a screenshot, at least 1200 px wide, to `assets/products/`. The first
-   product's frame is 2:1; the others are 16:10. Frames crop from the top.
+1. Save a screenshot, at least 1200 px wide, to `assets/products/`. Frames are
+   16:10 unless the entry sets `ratio` (the job portal uses `'2 / 1'`). They crop
+   from the top.
 2. Add an entry to `PRODUCTS` with `name`, `url`, `host` (the address shown in
    the address bar), `repo`, `shot`, `shotAlt`, `summary`, three `facts` and `tech`.
 3. Add the same project to `PROJECTS` with `live:` set to its URL.
+
+### System-design diagrams
+
+Every project has an entry in `ARCH`, keyed by its exact name in `PROJECTS`. Each
+diagram is a list of layers, top to bottom, built with
+`L('Layer name', [['Component', 'detail'], …], true)`. The final `true` highlights
+the layer that does the core work, and `note` adds a "Design choice" line under it.
+The same diagram appears in the project's Quick view and, for case studies, in the
+page's System design section via `<div data-render="arch" data-project="Name">`.
 
 ### Adding a certification
 

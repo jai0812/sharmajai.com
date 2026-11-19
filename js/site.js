@@ -265,7 +265,7 @@
             '<span class="product__dots"><i></i><i></i><i></i></span>' +
             '<span class="product__addr"><span class="product__lock">' + LOCK + '</span>' + esc(p.host) + '</span>' +
           '</div>' +
-          '<div class="product__shot"><img src="' + esc(p.shot) + '" alt="' + esc(p.shotAlt) + '" loading="lazy" width="1600" height="1000"></div>' +
+          '<div class="product__shot"' + (p.ratio ? ' style="aspect-ratio:' + esc(p.ratio) + '"' : '') + '><img src="' + esc(p.shot) + '" alt="' + esc(p.shotAlt) + '" loading="lazy" width="1600" height="1000"></div>' +
         '</a>' +
         '<div class="product__body">' +
           '<div class="product__status"><span class="product__live">Live</span><span>' + esc(p.host) + '</span></div>' +
@@ -300,6 +300,27 @@
         '</div>' + verify +
       '</article>';
     }).join('');
+  };
+
+  /* ------------------- System design / architecture ----------------------- */
+  function archHTML(name) {
+    const a = typeof ARCH !== 'undefined' && ARCH[name];
+    if (!a) return '';
+    return '<figure class="arch" aria-label="System design for ' + esc(name) + ', from data sources at the top to outputs at the bottom">' +
+      '<ol class="arch__layers">' + a.layers.map(function (l) {
+        return '<li class="arch__layer' + (l.hl ? ' arch__layer--hl' : '') + '">' +
+          '<span class="arch__label">' + esc(l.layer) + '</span>' +
+          '<div class="arch__nodes">' + l.nodes.map(function (n) {
+            return '<div class="arch__node"><b>' + esc(n[0]) + '</b>' + (n[1] ? '<span>' + esc(n[1]) + '</span>' : '') + '</div>';
+          }).join('') + '</div>' +
+        '</li>';
+      }).join('') + '</ol>' +
+      (a.note ? '<figcaption class="arch__note"><b>Design choice.</b> ' + esc(a.note) + '</figcaption>' : '') +
+    '</figure>';
+  }
+
+  render.arch = function (el) {
+    el.innerHTML = archHTML(el.dataset.project);
   };
 
   render.interests = function (el) {
@@ -472,9 +493,11 @@
     '<p class="modal__desc">' + esc(p.desc) + '</p>' +
     '<span class="label">Built with</span>' +
     '<div class="chips modal__chips">' + p.tech.map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div>' +
+    (archHTML(p.name) ? '<section class="modal__arch"><h3 class="modal__h">System design &amp; architecture</h3>' + archHTML(p.name) + '</section>' : '') +
     '<div class="modal__links">' + links.join('') + '</div>';
 
     overlay.dataset.open = 'true';
+    $('.modal-card', overlay).scrollTop = 0;
     $('.modal-close', overlay).focus();
   }
 
