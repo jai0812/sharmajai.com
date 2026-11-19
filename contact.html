@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — Jai Sharma</title>
+<meta name="description" content="Get in touch with Jai Sharma — data scientist and ML engineer in Boston, open to full-time roles.">
+<link rel="canonical" href="https://sharmajai.com/contact.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Contact — Jai Sharma">
+<meta property="og:description" content="Open to full-time data science, ML engineering and analytics roles.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .contact-grid { display: grid; gap: 3.5rem; align-items: start; }
+  @media (min-width: 940px) { .contact-grid { grid-template-columns: 1fr 1fr; gap: 5rem; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <span class="label">Contact</span>
+    <h1 class="display">Tell me what you're building.</h1>
+    <p class="lede">I read everything and reply to anything that isn't a template.
+      If you're hiring, the fastest route is to say what the team does and what
+      you'd want me on.</p>
+  </section>
+
+  <div class="wrap"><div data-availability hidden></div></div>
+
+  <section class="section section--tight">
+    <div class="wrap contact-grid">
+
+      <div>
+        <span class="label" style="display:block;margin-bottom:1.75rem">Send a message</span>
+        <!-- Posts to Formspree (endpoint set in js/data.js). bot-field is a
+             honeypot: invisible to people, filled by bots, dropped silently.
+             To switch to Netlify Forms instead, add back:
+               name="contact" data-netlify="true" data-netlify-honeypot="bot-field"
+               <input type="hidden" name="form-name" value="contact">
+             and flip netlifyForms/formspreeId in js/data.js. -->
+        <form class="form" method="POST" data-contact-form novalidate>
+          <p class="sr" aria-hidden="true">
+            <label>Leave this empty: <input name="bot-field" tabindex="-1" autocomplete="off"></label>
+          </p>
+          <div class="field">
+            <label for="email">Your email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required placeholder="you@company.com">
+          </div>
+          <div class="field">
+            <label for="subject">Subject</label>
+            <input type="text" id="subject" name="subject" placeholder="Data Scientist role at …">
+          </div>
+          <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" required placeholder="What the team works on, and what you'd want me on."></textarea>
+          </div>
+          <div>
+            <button class="btn btn--primary" type="submit" data-arrow>Send message</button>
+          </div>
+          <p class="form__status" role="status" aria-live="polite"></p>
+          <p class="form__note" data-form-note>Goes straight to my inbox.</p>
+        </form>
+      </div>
+
+      <div>
+        <span class="label" style="display:block;margin-bottom:1.75rem">Or reach me directly</span>
+        <div class="contact-links">
+          <a class="contact-link" data-site="email" href="mailto:sharmajai.us@gmail.com">
+            <span class="label">Email</span>
+            <b>sharmajai.us@gmail.com</b>
+          </a>
+          <a class="contact-link" data-site="linkedin" href="https://linkedin.com/in/jaisharma08122002/" target="_blank" rel="noopener">
+            <span class="label">LinkedIn</span>
+            <b>jaisharma08122002</b>
+          </a>
+          <a class="contact-link" data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener">
+            <span class="label">GitHub</span>
+            <b>jai0812</b>
+          </a>
+          <a class="contact-link" data-site="orcid" href="https://orcid.org/0009-0006-7427-8998" target="_blank" rel="noopener">
+            <span class="label">ORCID</span>
+            <b>0009-0006-7427-8998</b>
+          </a>
+        </div>
+
+        <div style="margin-top:2.5rem">
+          <span class="label" style="display:block;margin-bottom:1rem">Based in</span>
+          <p style="color:var(--soft)">Boston University, Massachusetts.</p>
+        </div>
+
+        <div style="margin-top:2.5rem">
+          <a class="btn" data-resume download hidden data-arrow>Download résumé</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__in">
+      <div>
+        <h2 class="display">Thanks for reading this far.</h2>
+        <p>Email is the quickest way to reach me.</p>
+      </div>
+      <div class="foot__col">
+        <h3 class="label">Pages</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="experience.html">Experience</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="about.html">About</a></li>
+        </ul>
+      </div>
+      <div class="foot__col">
+        <h3 class="label">Elsewhere</h3>
+        <ul>
+          <li><a data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a data-site="linkedin" href="https://linkedin.com/in/jaisharma08122002/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a data-site="orcid" href="https://orcid.org/0009-0006-7427-8998" target="_blank" rel="noopener">ORCID</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span>Boston, Massachusetts</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

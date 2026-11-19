@@ -1,0 +1,518 @@
+/* =============================================================================
+   data.js — the single source of truth for sharmajai.com
+   Edit content HERE. Every page reads from this file.
+
+   Quick edits you'll probably want:
+     · SITE.formspreeId  → turn the contact form into real email  (line ~30)
+     · SITE.resumeUrl    → drop resume.pdf into assets/documents/ (line ~31)
+     · WORK.roles        → add real jobs                          (line ~60)
+     · PROJECTS[].repo   → per-project GitHub URLs                (search "repo:")
+   ========================================================================== */
+
+const SITE = {
+  name: 'Jai Sharma',
+  role: 'Data Scientist · ML Engineer',
+  location: 'Boston, MA',
+  email: 'sharmajai.us@gmail.com',
+  github: 'https://github.com/jai0812',
+  linkedin: 'https://linkedin.com/in/jaisharma08122002/',
+  orcid: 'https://orcid.org/0009-0006-7427-8998',
+  domain: 'sharmajai.com',
+
+  // ---------------------------------------------------------------------------
+  // CONTACT FORM — where submissions go.
+  //
+  // Currently: FORMSPREE (endpoint https://formspree.io/f/mzeprezw).
+  // Submissions email you and are listed in the Formspree dashboard, which
+  // exports to CSV. Free tier is 50 submissions a month.
+  //
+  // Order of preference, first one that's switched on wins:
+  //
+  //   1. netlifyForms  — set true (and clear formspreeId) to let Netlify
+  //      capture submissions instead. No account needed, 100/month, but it
+  //      only works once deployed to Netlify.
+  //
+  //   2. formspreeId   — the bit of the endpoint URL after /f/. In use now.
+  //
+  //   3. mailto        — the fallback, if neither is set. Also used whenever a
+  //      send fails, so a message is never silently lost.
+  //
+  // sheetWebhook is an OPTIONAL extra, not a replacement: paste a Google Apps
+  // Script URL here and every submission is ALSO appended to a live Google
+  // Sheet. Setup instructions and the script to copy are in the README.
+  netlifyForms: false,
+  formspreeId: 'mzeprezw',
+  sheetWebhook: '',
+
+  // Download buttons stay hidden until this file exists.
+  resumeUrl: 'assets/documents/resume.pdf',
+
+  // One-line location strip under the hero. Set to '' to hide it.
+  based: 'Boston University, MA'
+};
+
+/* ========================= WORK EXPERIENCE ================================ */
+/* Add real roles here and they appear at the top of work.html automatically.
+   While `roles` is empty the page leads with the Education & Research timeline
+   instead — so nothing ever renders as an empty or broken section.
+
+   Copy this shape per role:
+   {
+     title: 'Data Science Intern',
+     company: 'Company Name',
+     location: 'Boston, MA',
+     start: 'Jun 2025', end: 'Aug 2025',
+     bullets: [
+       'Built X that produced Y measurable outcome.',
+       'Shipped Z used by N people / cut runtime from A to B.'
+     ],
+     tech: ['Python', 'PySpark', 'AWS']
+   },
+*/
+const WORK = {
+  roles: [
+    {
+      title: 'Research Assistant',
+      company: 'AI & Computer Vision (AICV) Lab, Boston University',
+      location: 'Boston, MA',
+      start: 'Jan 2026', end: 'May 2026', period: '',
+      bullets: [
+        'Deep-learning research on medical image analysis for knee osteoarthritis in the AICV Lab — building U-Net bone-segmentation models on knee MRI to support automated osteoarthritis assessment.',
+        'Handled the full imaging pipeline: DICOM-to-image conversion, mask generation, preprocessing, and training on BU\'s Shared Computing Cluster (GPU).',
+        'The same underlying problem as my hand osteoarthritis research — getting dependable performance out of medical imaging data that is scarce and unevenly labelled.'
+      ],
+      tech: ['Python', 'TensorFlow', 'OpenCV', 'U-Net', 'Medical imaging'],
+      image: 'assets/experience/knee-mri.jpg',
+      imageAlt: 'Schematic of a knee joint from the side, with the articular cartilage and tibial plateau marked and a predicted segmentation contour drawn around the femoral condyle'
+    },
+    {
+      title: 'AI/Backend Developer',
+      company: 'Insighta',
+      location: 'Boston University startup',
+      start: 'May 2026', end: 'Aug 2026',
+      bullets: [
+        'Built the verified-participant module for a survey research platform: tiered verification with payout gating, so studies only pay out for responses from confirmed participants.',
+        'Built the analytics side — participation and response-quality reporting for the researchers running each study.'
+      ],
+      tech: ['FastAPI', 'SQLAlchemy', 'Python', 'Jinja2'],
+      image: 'assets/experience/insighta.jpg',
+      imageAlt: 'Diagram of a four-tier verification funnel — identity, eligibility, response quality, verified — feeding a payout gate that releases only after all four pass'
+    },
+    {
+      title: 'Data Science Intern',
+      company: 'Punjab State Power Corporation Ltd.',
+      location: 'Punjab, India',
+      start: 'Jan 2025', end: 'Jun 2025',
+      bullets: [
+        'Built Python pipelines to clean and analyze operational energy datasets for Punjab\'s state electricity utility.',
+        'Ran exploratory analysis on historical power-consumption data to surface usage trends and inconsistencies, and delivered visual reports for stakeholders.',
+        'Reduced manual entry and proxy attendance through a data-driven tracking system.'
+      ],
+      tech: ['Python', 'Pandas', 'SQL', 'Excel'],
+      image: 'assets/experience/pspcl.jpg',
+      imageAlt: 'Illustrative daily electricity demand curve over 24 hours, with the evening peak highlighted'
+    },
+    {
+      title: 'Research Assistant',
+      company: 'Guru Nanak Dev University',
+      location: 'Amritsar, India',
+      start: 'May 2024', end: 'Aug 2024',
+      bullets: [
+        'Researched iris recognition and biometric identification using image processing — segmentation, feature extraction, and Hamming-distance matching.',
+        'Contributed analysis and results towards peer-reviewed publications.'
+      ],
+      tech: ['Python', 'Image processing', 'OpenCV'],
+      image: '',
+      imageAlt: ''
+    }
+  ],
+
+  education: [
+    {
+      degree: 'MS, Applied Data Analytics',
+      school: 'Boston University',
+      location: 'Boston, MA',
+      period: 'Sep 2025 — present',   // confirmed by Jai
+      detail: 'Focus: big data engineering, computer vision, statistical machine learning.',
+      courses: ['CS777 Big Data Analytics', 'CS790 Advanced Computer Vision', 'CS699 Data Mining',
+                'Statistical Machine Learning', 'Mathematical Machine Learning', 'Data Science with Python',
+                'Database Design', 'Generative AI']
+    },
+    {
+      degree: 'B.Tech, Computer Science & Engineering',
+      school: 'Guru Nanak Dev University',
+      location: 'Amritsar, India',
+      period: 'Jun 2021 — May 2025',
+      detail: 'GPA 3.38/4. Focus: machine learning, data science, computer networks, data structures.',
+      courses: []
+    }
+  ]
+};
+
+/* ============================== PILLARS =================================== */
+const PILLARS = [
+  {
+    name: 'Data science & analytics',
+    body: 'Real datasets, honest evaluation, statistical testing. I care most about what happens to the minority class — the rows a model is happy to ignore.',
+    chips: ['Python', 'scikit-learn', 'Statsmodels', 'Pandas']
+  },
+  {
+    name: 'Big data engineering',
+    body: 'Distributed jobs that behave the same on my laptop and on a cloud cluster. Written down to the RDD when the abstraction gets in the way.',
+    chips: ['PySpark', 'AWS EMR', 'S3', 'NumPy']
+  },
+  {
+    name: 'Computer vision & applied AI',
+    body: 'Generative models for medical imaging, and retrieval systems running on local LLMs. Research-grade methods, evaluated like production.',
+    chips: ['PyTorch', 'Diffusion', 'LLaMA 3', 'FAISS']
+  }
+];
+
+/* ============================ CASE STUDIES ================================ */
+/* `thumb` images live in assets/thumbs/ and render in a wide rectangular panel
+   (60% of the card). Supply them at roughly 1600×1000 — anything close to a
+   16:10 rectangle works; the panel crops from the centre. Overwrite the file
+   with the same name and it appears automatically.
+
+   VIDEO INSTEAD OF A STILL
+   Drop an .mp4 in assets/thumbs/ and set `video` to its path. It plays muted
+   and looped, only while the card is on screen, with no controls — an ambient
+   loop, not a player. Keep `thumb` set as well: it becomes the poster frame,
+   so the card looks right before the video loads, if autoplay is blocked, or
+   if the visitor has reduced motion turned on.
+
+     video: 'assets/thumbs/hand-oa.mp4',
+     videoWebm: '',   // optional smaller WebM, served first when present
+
+   Aim for under ~4 MB each, 8–15 seconds, no audio track, H.264 / yuv420p.   */
+const CASES = [
+  {
+    slug: 'case-harsc.html',
+    kicker: 'Big data · Distributed computing',
+    title: 'KNN from scratch on Spark: 21.7 million distance computations.',
+    short: 'Human Activity Recognition on Spark',
+    summary: 'The entire K-Nearest Neighbors algorithm — distance computation, neighbor selection, voting — implemented using pure PySpark RDD primitives. No MLlib, no scikit-learn. 90.53% accuracy classifying six human activities from 561-dimensional sensor data, deployed identically on a laptop and on AWS EMR.',
+    metric: '0.9024', metricLabel: 'macro-F1 (beats published SVM baseline)',
+    video: '',
+    videoWebm: '',
+    thumb: 'assets/thumbs/harsc.png',
+    thumbAlt: 'Smartwatch on a wrist recognizing human activity, with a holographic display showing Walking, Running, Sitting and Cycling classifications alongside a data pipeline',
+    tech: ['PySpark', 'AWS EMR', 'S3', 'NumPy']
+  },
+  {
+    slug: 'case-hand-oa.html',
+    kicker: 'Computer vision · Medical imaging',
+    title: 'Teaching a diffusion model to draw the X-rays we don\'t have',
+    short: 'Hand OA X-ray synthesis',
+    summary: 'Severe osteoarthritis is 2.9% of a 13,176-image dataset — so classifiers fail exactly where the clinical stakes are highest. A class-conditional latent diffusion model generated the missing severe grades and lifted 5-class AUC from 0.878 to 0.908.',
+    metric: '+0.072', metricLabel: 'AUC on the rarest grade (KL4)',
+    video: '',
+    videoWebm: '',
+    thumb: 'assets/thumbs/hand-oa.png',
+    thumbAlt: 'Title card reading "Generating KL grade osteoarthritis in DIP joints", beside two finger-joint X-rays labelled KL 0-2 lower grade and KL 3-4 higher grade',
+    tech: ['PyTorch', 'Latent Diffusion', 'CycleGAN', 'VAE', 'ResNet-18']
+  },
+  {
+    slug: 'case-lane-advantage.html',
+    kicker: 'Sports analytics · Elite sprinting',
+    title: 'Middle lanes win more sprints. Not because they run faster.',
+    short: 'Lane advantage in track & field',
+    summary: 'A decade of Olympic and World Championship sprint results, tested properly. Lane and winning are strongly dependent — but finishing times across lanes are statistically identical. The advantage is structural, not physiological.',
+    metric: '8.2% → 0%', metricLabel: 'middle-lane vs inside-lane win rate',
+    video: 'assets/thumbs/lane.mp4',
+    videoWebm: '',
+    thumb: 'assets/thumbs/lane.jpg',
+    thumbAlt: 'Bar chart of win probability by lane, peaking near 13% at lanes 5 and 6 and flat at zero for lanes 1 and 2',
+    tech: ['R', 'tidyverse', 'Chi-square', 'ANOVA', 'Tukey HSD']
+  },
+  {
+    slug: 'case-disability.html',
+    kicker: 'Data science · American Housing Survey 2023',
+    title: 'Thirty-six models, and the simplest fix won',
+    short: 'US household disability prediction',
+    summary: 'Nine classifiers crossed with four class-balancing strategies on 9,241 households, all scored on minority-class recall rather than accuracy. Plain random undersampling beat SMOTE and every fancier alternative.',
+    metric: '36', metricLabel: 'pipelines trained on one identical split',
+    video: '',        // e.g. 'assets/thumbs/disability.mp4' — see note above
+    videoWebm: '',
+    thumb: 'assets/thumbs/disability.jpg',
+    thumbAlt: 'Infographic showing imbalanced dataset structure, conventional model failure at 90%+ raw accuracy, and the classifier plus imbalance fix solution with SMOTE, ADASYN, Tomek Links and class weighting leading to balanced performance',
+    tech: ['scikit-learn', 'imbalanced-learn', 'Pandas']
+  }
+];
+
+/* ============================ PUBLICATIONS ================================ */
+const PAPERS = [
+  {
+    id: 'retinopathy',
+    title: 'A Hybrid Approach Combining Deep CNN Features with Classical Machine Learning for Diabetic Retinopathy Diagnosis',
+    venue: 'IJACSA', vol: 'Vol. 16, No. 8', year: '2025', type: 'Journal article',
+    doi: '10.14569/ijacsa.2025.0160827',
+    url: 'https://doi.org/10.14569/ijacsa.2025.0160827',
+    authors: ['Jai Sharma', 'Amandeep Kaur', 'Simranjit Singh', 'Hardeep Singh', 'Sarveshwar Bharti', 'Himanshi Sharma'],
+    first: true,
+    headline: 'A tuned RBF-SVM reading dual-CNN features hit 85.48% accuracy — beating every end-to-end deep baseline it was compared against, while staying light enough for a rural clinic.',
+    problem: 'Diabetic retinopathy is the leading cause of preventable blindness, and it progresses silently — by the time manual inspection catches it, it is often advanced. The goal was an automated system that reads a retinal fundus image and classifies the disease stage.',
+    did: [
+      'Preprocessed each image to 224×224, extracted the green channel (where vessels and lesions show clearest), then applied top-hat filtering for bright exudates and bottom-hat for dark hemorrhages.',
+      'Used GoogleNet and ResNet-18 as feature extractors only — classification heads removed — and concatenated their feature maps into one vector per image.',
+      'Z-score normalised, then ran ten classical classifiers over those features. The winning RBF-SVM was tuned with GridSearchCV and 5-fold cross-validation.'
+    ],
+    data: 'APTOS 2019 Blindness Detection · 3,662 retinal fundus images · 5 stages',
+    results: [
+      ['Best model', 'Tuned RBF-SVM'],
+      ['Accuracy', '85.48%'],
+      ['Precision / F1', '85.05% / 84.93%'],
+      ['Per-class AUC', '0.87 – 0.99']
+    ],
+    compare: [
+      ['This work — dual-CNN + RBF-SVM', 85.48],
+      ['Gulshan 2016 — InceptionV3', 82],
+      ['Islam 2022 — CNN + SVM', 81.7],
+      ['Mohanty 2023 — VGG16 + XGBoost', 79.5],
+      ['Pratt 2016 — CNN end-to-end', 75]
+    ],
+    compareLabel: 'Accuracy vs prior published work (%)',
+    why: 'Splitting the problem — deep networks for representation, a classical classifier for the decision — outperformed every standalone deep model here while remaining interpretable and cheap to deploy. That combination matters clinically, where an unexplained prediction is not much use.',
+    tools: ['Python', 'TensorFlow', 'GoogleNet', 'ResNet-18', 'scikit-learn', 'OpenCV']
+  },
+  {
+    id: 'centrality',
+    title: 'Comparative Evaluation of Centrality Measures for Detecting Significant Nodes in Social Networks',
+    venue: 'IJACSA', vol: 'Vol. 16, No. 9', year: '2025', type: 'Journal article',
+    doi: '10.14569/IJACSA.2025.0160926',
+    url: 'https://doi.org/10.14569/IJACSA.2025.0160926',
+    // Co-authors to be added.
+    authors: [],
+    first: false,
+    headline: 'Twelve centrality measures, four real networks, one verdict: gravity-based measures win on accuracy and node differentiation, and Betweenness is both the slowest and the least accurate.',
+    problem: 'Some nodes in a network matter far more than others — for containing an outbreak, targeting influence, or hardening a power grid. Dozens of centrality measures exist to find them and there is no agreed-upon best. This paper benchmarks them head to head.',
+    did: [
+      'Selected 12 measures spanning local (Degree, ProfitLeader), semi-local (H-Index, Local Gravity) and global (Betweenness, Closeness, Eigenvector, PageRank, K-Shell, Gravity, Extended Gravity, Electric Potential) scope.',
+      'Ran all of them on the same four real-world networks, so the comparison is genuinely apples-to-apples.',
+      'Scored on three axes — accuracy against ground truth, differentiation between nodes, and runtime as the network grows.',
+      'Established ground truth with SIR epidemic simulation, then measured agreement with Kendall Tau and separation with Monotonicity.'
+    ],
+    data: 'LastFM (7,624 nodes) · US Western power grid (4,941) · Webspam (4,767) · Dolphins (62)',
+    results: [
+      ['Most accurate', 'Extended Gravity (τ up to 0.897)'],
+      ['Least accurate', 'Betweenness (τ 0.411)'],
+      ['Fastest', 'Degree (0.0036s on LastFM)'],
+      ['Slowest', 'Betweenness (350.6s on LastFM)']
+    ],
+    compare: [
+      ['Extended Gravity', 0.897], ['Gravity', 0.849],
+      ['Electric Potential', 0.831], ['K-Shell', 0.522], ['Betweenness', 0.411]
+    ],
+    compareLabel: 'Kendall τ — ranking accuracy against SIR ground truth',
+    why: 'Practitioners have to pick a measure before they can do anything else, and the popular defaults are a poor choice. Extended Gravity gives the best accuracy and near-perfect differentiation at moderate cost; Betweenness costs five orders of magnitude more runtime to be less accurate.',
+    tools: ['Python', 'NetworkX', 'SIR simulation', 'Kendall Tau']
+  },
+  {
+    id: 'climate',
+    title: 'Fifty Years of Climate Change Studies: A Scientometric Assessment',
+    venue: 'IEEE Access', vol: 'Vol. 13', year: '2025', type: 'Journal article',
+    doi: '10.1109/ACCESS.2025.3578434',
+    url: 'https://doi.org/10.1109/ACCESS.2025.3578434',
+    authors: ['Sulaimon Oyeniyi Adebayo', 'Hardeep Singh', 'Supreet Kaur', 'Himanshi Sharma', 'Jai Sharma', 'Karman Singh Sethi'],
+    first: false,
+    headline: 'One of the largest scientometric studies in the field: 437,035 documents over 50 years, mapping who publishes climate research, from where, and on what.',
+    problem: 'Climate research has grown explosively for five decades, but nobody had mapped the field at full scale — who publishes, from which countries and institutions, on which topics, and how all of that shifted over time.',
+    did: [
+      'Retrieved 437,035 documents from Scopus covering 1972–2021, chosen for its coverage, citation depth and VOSviewer compatibility.',
+      'Cleaned and disambiguated authors using ORCID and Scopus Author IDs, then filtered on SJR, CiteScore and H-Index.',
+      'Ran four analyses in VOSviewer — citation, authorship and co-citation, country and institutional collaboration, and keyword clustering.',
+      'Sliced the whole corpus decade by decade, 1972–81 through 2012–21, to trace how the field moved.'
+    ],
+    data: '437,035 documents · 1972–2021 · Scopus · 14.3% average annual growth',
+    results: [
+      ['Corpus', '437,035 documents'],
+      ['Concentration', '69% published in the last decade'],
+      ['Leading country', 'USA, 19.18% of all output'],
+      ['Peak year', '2021 — 47,362 papers']
+    ],
+    compare: [
+      ['USA', 19.18], ['China', 8.18], ['UK', 8.00], ['Germany', 5.51],
+      ['Australia', 4.88], ['Canada', 4.37], ['India', 2.39]
+    ],
+    compareLabel: 'Share of global climate-change publications (%)',
+    why: 'The output is heavily concentrated — by decade, by country, by language — and the growth spikes track policy milestones like Kyoto, the IPCC assessments and Paris. The clearest finding is a gap: Africa and non-English research are badly underrepresented in a literature about a global problem.',
+    tools: ['Scopus', 'VOSviewer', 'ORCID', 'Excel']
+  },
+  {
+    id: 'gravity',
+    title: 'Comparative Evaluation of Different Gravity Centrality Measures for Finding Central Nodes in Social Networks',
+    venue: 'Springer Nature · CCIS', vol: 'Book chapter', year: '2027', type: 'Book chapter',
+    doi: '10.1007/978-3-032-27120-4_21',
+    url: 'https://doi.org/10.1007/978-3-032-27120-4_21',
+    authors: ['Hardeep Singh', 'Jai Sharma', 'Harnoor Kaur'],
+    first: false,
+    headline: 'A focused follow-up to the centrality benchmark, narrowing in on the gravity family that came out ahead.',
+    problem: '',
+    did: [],
+    data: '',
+    results: [],
+    compare: [],
+    compareLabel: '',
+    // Deep-dive to be added; the write-up section appears once it is filled in.
+    why: '',
+    tools: ['Python', 'NetworkX']
+  }
+];
+
+/* ============================== PROJECTS ================================== */
+/* `repo` is the code link shown on each project card.                        */
+const PROJECTS = [
+  { name: 'Hand OA X-ray Synthesis', cat: 'Computer vision', featured: 'case-hand-oa.html',
+    desc: 'Class-conditional latent diffusion plus a CycleGAN baseline, built to fix an extreme class imbalance where severe grades were 2.9% of the data.',
+    stat: '0.878 → 0.908 AUC', tech: ['PyTorch', 'Diffusion', 'CycleGAN', 'ResNet-18', 'VAE'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Human Activity Recognition on Spark', cat: 'Big data', featured: 'case-harsc.html',
+    desc: 'KNN written from scratch on PySpark RDD primitives with zero MLlib, classifying six activities from 561-dimensional sensor data — roughly 21.7 million distance computations.',
+    stat: '90.53% on AWS EMR', tech: ['PySpark', 'AWS EMR', 'S3', 'NumPy'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'US Household Disability Prediction', cat: 'Data science', featured: 'case-disability.html',
+    desc: 'Nine classifiers crossed with four balancing techniques on 9,241 households and 145 features from the 2023 American Housing Survey.',
+    stat: '36 pipelines compared', tech: ['scikit-learn', 'imbalanced-learn', 'Pandas'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Lane Advantage in Track & Field', cat: 'Sports analytics', featured: 'case-lane-advantage.html',
+    desc: 'Does lane assignment decide sprint races? About 866 elite race entries tested with chi-square, logistic regression, ANOVA and Tukey HSD.',
+    stat: 'χ² = 50.6, p = 3×10⁻⁸', tech: ['R', 'tidyverse', 'ANOVA', 'Tukey HSD'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Multi-Agent RAG Assistant', cat: 'NLP & LLMs', featured: '',
+    desc: 'Question answering over research papers using LLaMA 3 through Ollama, FAISS embeddings, and cosine-similarity scoring to flag likely hallucinations.',
+    stat: 'Runs fully local', tech: ['LangChain', 'Ollama', 'LLaMA 3', 'FAISS'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Face Recognition Attendance', cat: 'Computer vision', featured: '',
+    desc: 'Webcam attendance capture using LBPH facial recognition, with a Tkinter dashboard and WhatsApp alerts over Twilio.',
+    stat: 'End-to-end desktop app', tech: ['OpenCV', 'Tkinter', 'Twilio'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Anomaly Detection Visualizer', cat: 'Data science', featured: '',
+    desc: 'Drop in any CSV, pick your features, and see anomalies surfaced by Isolation Forest in an interactive Plotly view.',
+    stat: 'Streamlit app', tech: ['Streamlit', 'scikit-learn', 'Plotly'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'MovieLens 10M Analysis', cat: 'Big data', featured: '',
+    desc: 'Rating-distribution analysis across 10 million rows, with five-partition splitting and a manual sort benchmarked against Python\'s built-in.',
+    stat: '10M rows', tech: ['Python', 'NumPy', 'Matplotlib'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'NYC Taxi Analytics', cat: 'Big data', featured: '',
+    desc: 'Pure-Python streaming analysis of 2013 trip data: most active taxis, highest earning drivers by dollars per minute, and peak revenue hours.',
+    stat: 'Revenue peaks at 7 PM', tech: ['Python', 'CSV', 'Jupyter'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Data Cleaning Toolkit', cat: 'Data analytics', featured: '',
+    desc: 'A reusable preprocessing pipeline: missing-value handling, IQR outlier removal, min-max and z-score normalisation, and one-hot encoding.',
+    stat: 'Reusable pipeline', tech: ['Python', 'Pandas', 'Matplotlib'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'InventaBill', cat: 'Tools', featured: '',
+    desc: 'Desktop retail billing and inventory system with GST invoicing, stock management, sales analytics and PDF invoice generation.',
+    stat: 'Shipped desktop app', tech: ['Python', 'Tkinter', 'SQLite', 'FPDF'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Insighta Platform', cat: 'Tools', featured: '',
+    desc: 'Survey research platform with a verified-participant engine, tiered verification and payout gating.',
+    stat: 'Full-stack service', tech: ['FastAPI', 'SQLAlchemy', 'Jinja2'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'Text Editor on a Linked List', cat: 'Tools', featured: '',
+    desc: 'A command-line text editor built on a custom singly linked list, so line insertion and deletion stay cheap.',
+    stat: 'Data structures from scratch', tech: ['C++'],
+    repo: 'https://github.com/jai0812' },
+
+  { name: 'SQL Coursework', cat: 'Data analytics', featured: '',
+    desc: 'PostgreSQL schema design work: normalisation, constraints, indexing strategy and query optimisation.',
+    stat: 'PostgreSQL', tech: ['PostgreSQL', 'SQL'],
+    repo: 'https://github.com/jai0812' }
+];
+
+/* ============================== INTERESTS ================================= */
+/* Problem areas, shown on the Experience page.                              */
+const INTERESTS = [
+  {
+    name: 'Health & medical imaging',
+    body: 'Diagnostic imaging, disease grading, and the generative methods that make rare conditions learnable. The problems where a model being wrong on the minority class actually costs something.'
+  },
+  {
+    name: 'Computer vision',
+    body: 'Image synthesis, classification and segmentation — particularly where the dataset is small, skewed or expensive to collect, and the interesting work is getting more out of less.'
+  },
+  {
+    name: 'Applied AI & retrieval',
+    body: 'Multi-agent systems, retrieval-augmented generation, and local LLMs. I care about the evaluation layer most: knowing when a system is confidently making things up.'
+  },
+  {
+    name: 'Large-scale data systems',
+    body: 'Distributed processing on Spark and cloud clusters, and the engineering that keeps a pipeline honest as the data grows past what fits on one machine.'
+  },
+  {
+    name: 'Statistical analysis for real decisions',
+    body: 'Experiment design, hypothesis testing and causal reasoning applied to questions people actually argue about — sports, housing, public health, policy.'
+  },
+  {
+    name: 'Research that gets published',
+    body: 'Work held to a standard where a reviewer will check the method. Four peer-reviewed papers taught me to report the number that survived the held-out set.'
+  }
+];
+
+/* =========================== EXTRACURRICULARS ============================= */
+/* Org names and years to be completed where marked "—".                      */
+const LIFE = [
+  { title: 'National-level swimmer', meta: 'India',
+    body: 'Competed at national level in India.',
+    why: '',
+    tags: ['Swimming', 'National level'] },
+  { title: 'Ironman triathlon, in training', meta: 'Upcoming',
+    body: 'Currently building toward a full Ironman — 2.4 mile swim, 112 mile bike, 26.2 mile run.',
+    why: 'Setting an absurd long-horizon goal and then executing a boring consistent plan toward it is exactly how the research projects got finished.',
+    tags: ['Endurance', 'Long-horizon goals'] },
+  { title: 'Part-time swim instructor', meta: 'Swim coaching · —',
+    body: 'Teach swimming to learners across every age and confidence level, breaking a complex physical skill into steps people can actually complete.',
+    why: 'Coaching a nervous beginner and explaining a model to a non-technical stakeholder are the same skill: patience, and refusing to hide behind jargon.',
+    tags: ['Coaching', 'Communication'] },
+  { title: 'Digital-literacy volunteer', meta: 'Community NGO · —',
+    body: 'Taught children from marginalised communities to use computers for their schoolwork, from first login to real study tools.',
+    why: 'It is why I care about interpretable, low-resource models. Methods that only run on expensive hardware never reach the people who need them most.',
+    tags: ['Volunteering', 'Social impact'] },
+  { title: 'Tennis', meta: 'Ongoing',
+    body: 'Active club player — fast, strategic, and a good excuse to stop staring at a training loss curve.',
+    why: 'Reading an opponent and adapting mid-match keeps the same reflex sharp that live debugging demands.',
+    tags: ['Tennis', 'Strategy'] }
+];
+
+/* =============================== WRITING ================================== */
+/* Blog posts. Don't hand-write these entries — run the converter and paste
+   what it prints:
+       python3 tools/docx-to-post.py ~/Desktop/my-post.docx
+   It creates post-<slug>.html, pulls the pictures out of the Word file into
+   assets/blog/<slug>/, and prints the block to paste in here.
+   Newest first; the Writing page and the home page teaser both read this.   */
+const POSTS = [
+  {
+    slug: 'post-autonomous-mobility.html',
+    title: 'Beyond Self-Driving: The Data Science Behind Autonomous Mobility',
+    date: '2026-09-03',
+    dateLabel: '3 September 2026',
+    readingTime: 12,
+    excerpt: 'Making one vehicle autonomous is one problem. Operating thousands of them efficiently is an entirely different data science challenge — one built on forecasting, optimization, simulation and AI.',
+    tags: ['Data Science', 'Autonomous Vehicles', 'Forecasting', 'Operations Research'],
+    cover: ''
+  }
+];
+
+/* ============================== DOCUMENTS ================================= */
+const DOCS = [
+  { label: 'Hand OA — full technical report', file: 'assets/documents/HandOA_LDM_Report.docx', kind: 'DOCX' },
+  { label: 'Hand OA — presentation slides',   file: 'assets/documents/HandOA_LDM_Slides.pptx', kind: 'PPTX' },
+  { label: 'Hand OA — conference poster',     file: 'assets/documents/HandOA_Poster.svg',      kind: 'SVG' },
+  { label: 'Lane Advantage — full report',    file: 'assets/documents/Lane_Advantage_Report.pdf', kind: 'PDF' },
+  { label: 'HARSC — full technical report',   file: 'assets/documents/HARSC_Final_Report.docx',   kind: 'DOCX' },
+  { label: 'HARSC — results report',          file: 'assets/documents/HARSC_Results_Report.docx', kind: 'DOCX' }
+];

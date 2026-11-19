@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyond Self-Driving: The Data Science Behind Autonomous Mobility — Jai Sharma</title>
+<meta name="description" content="Making one vehicle autonomous is one problem. Operating thousands of them efficiently is an entirely different data science challenge — one built on forecasting, optimization, simulation and AI.">
+<link rel="canonical" href="https://sharmajai.com/post-autonomous-mobility.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Beyond Self-Driving: The Data Science Behind Autonomous Mobility">
+<meta property="og:description" content="Making one vehicle autonomous is one problem. Operating thousands of them efficiently is an entirely different data science challenge.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <article class="wrap post">
+    <a class="back" href="writing.html" data-back>All writing</a>
+    <div class="post__meta">
+      <span class="label post__date">3 September 2026</span>
+      <span class="post__reading">12 min read</span>
+    </div>
+    <h1 class="display">Beyond Self-Driving: The Data Science Behind Autonomous Mobility</h1>
+
+    <div class="post__body prose">
+      <p>When we talk about autonomous vehicles, the conversation usually revolves around whether a car can perceive its surroundings, understand its environment, and safely navigate without a human driver. But what happens when autonomous vehicles become an operational fleet? Making one vehicle autonomous is one problem. Operating thousands of them efficiently is an entirely different data science challenge — one that sits at the intersection of forecasting, optimization, simulation, operations research, and artificial intelligence.</p>
+
+      <p>Waymo now runs roughly 2,500 vehicles across eleven cities, completing over 500,000 paid trips per week — roughly 14 million rides in 2025 alone, a threefold increase over the previous year. Zoox launched paid service on the Las Vegas Strip in August 2026. And Cruise, after investing nearly $10 billion, halted its programme entirely — a reminder that the operational layer, not just the driving layer, determines whether an autonomous fleet survives.</p>
+
+      <p>This article examines the data science problems that emerge once you move past "can it drive?" and into "can it operate at scale?"</p>
+
+      <!-- ============ DIAGRAM 1: Driving vs Operations ============ -->
+      <figure class="post__fig">
+        <svg viewBox="0 0 780 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--body),Archivo,system-ui,sans-serif" role="img" aria-label="Comparison diagram: Autonomous Driving versus Autonomous Operations">
+          <!-- Background panels -->
+          <rect x="10" y="50" width="370" height="350" rx="8" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+          <rect x="400" y="50" width="370" height="350" rx="8" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+
+          <!-- Headers -->
+          <text x="195" y="30" text-anchor="middle" fill="#e9eef4" font-size="14" font-weight="600" letter-spacing="0.08em" text-transform="uppercase">AUTONOMOUS DRIVING</text>
+          <text x="585" y="30" text-anchor="middle" fill="#e9eef4" font-size="14" font-weight="600" letter-spacing="0.08em" text-transform="uppercase">AUTONOMOUS OPERATIONS</text>
+
+          <!-- Left column: driving pipeline -->
+          <text x="195" y="88" text-anchor="middle" fill="#8d9aa9" font-size="11" letter-spacing="0.06em">THE VEHICLE ASKS:</text>
+
+          <rect x="55" y="100" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="195" y="121" text-anchor="middle" fill="#8d9aa9" font-size="13">Where am I? What's around me?</text>
+
+          <rect x="55" y="142" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="195" y="163" text-anchor="middle" fill="#8d9aa9" font-size="13">What is the traffic doing?</text>
+
+          <rect x="55" y="184" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="195" y="205" text-anchor="middle" fill="#8d9aa9" font-size="13">How do I safely navigate?</text>
+
+          <text x="195" y="245" text-anchor="middle" fill="#5b6775" font-size="11" letter-spacing="0.06em">PIPELINE</text>
+
+          <g transform="translate(40,258)">
+            <rect x="0" y="0" width="68" height="26" rx="13" fill="none" stroke="#5b6775" stroke-width="1"/>
+            <text x="34" y="17" text-anchor="middle" fill="#8d9aa9" font-size="10">Perception</text>
+            <line x1="72" y1="13" x2="84" y2="13" stroke="#5b6775" stroke-width="1"/>
+            <rect x="88" y="0" width="80" height="26" rx="13" fill="none" stroke="#5b6775" stroke-width="1"/>
+            <text x="128" y="17" text-anchor="middle" fill="#8d9aa9" font-size="10">Localization</text>
+            <line x1="172" y1="13" x2="184" y2="13" stroke="#5b6775" stroke-width="1"/>
+            <rect x="188" y="0" width="68" height="26" rx="13" fill="none" stroke="#5b6775" stroke-width="1"/>
+            <text x="222" y="17" text-anchor="middle" fill="#8d9aa9" font-size="10">Prediction</text>
+
+            <rect x="40" y="38" width="68" height="26" rx="13" fill="none" stroke="#5b6775" stroke-width="1"/>
+            <text x="74" y="55" text-anchor="middle" fill="#8d9aa9" font-size="10">Planning</text>
+            <line x1="112" y1="51" x2="124" y2="51" stroke="#5b6775" stroke-width="1"/>
+            <rect x="128" y="38" width="68" height="26" rx="13" fill="none" stroke="#5b6775" stroke-width="1"/>
+            <text x="162" y="55" text-anchor="middle" fill="#8d9aa9" font-size="10">Control</text>
+          </g>
+
+          <!-- Vertical divider -->
+          <line x1="390" y1="60" x2="390" y2="390" stroke="#1b2431" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Right column: operations -->
+          <text x="585" y="88" text-anchor="middle" fill="#8d9aa9" font-size="11" letter-spacing="0.06em">THE COMPANY ASKS:</text>
+
+          <rect x="445" y="100" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="585" y="121" text-anchor="middle" fill="#8d9aa9" font-size="13">How many vehicles should operate?</text>
+
+          <rect x="445" y="142" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="585" y="163" text-anchor="middle" fill="#8d9aa9" font-size="13">Where will demand be tomorrow?</text>
+
+          <rect x="445" y="184" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="585" y="205" text-anchor="middle" fill="#8d9aa9" font-size="13">When should vehicles charge?</text>
+
+          <rect x="445" y="226" width="280" height="32" rx="4" fill="#18212e"/>
+          <text x="585" y="247" text-anchor="middle" fill="#8d9aa9" font-size="13">How much staffing is needed?</text>
+
+          <text x="585" y="287" text-anchor="middle" fill="#5b6775" font-size="11" letter-spacing="0.06em">PIPELINE</text>
+
+          <g transform="translate(425,298)">
+            <rect x="0" y="0" width="52" height="26" rx="13" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="26" y="17" text-anchor="middle" fill="#f5a25d" font-size="10">Data</text>
+            <line x1="56" y1="13" x2="64" y2="13" stroke="#5b6775" stroke-width="1"/>
+            <rect x="68" y="0" width="72" height="26" rx="13" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="104" y="17" text-anchor="middle" fill="#f5a25d" font-size="10">Forecasting</text>
+            <line x1="144" y1="13" x2="152" y2="13" stroke="#5b6775" stroke-width="1"/>
+            <rect x="156" y="0" width="86" height="26" rx="13" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="199" y="17" text-anchor="middle" fill="#f5a25d" font-size="10">Optimization</text>
+            <line x1="246" y1="13" x2="254" y2="13" stroke="#5b6775" stroke-width="1"/>
+            <rect x="258" y="0" width="66" height="26" rx="13" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="291" y="17" text-anchor="middle" fill="#f5a25d" font-size="10">Decision</text>
+          </g>
+
+          <!-- Arrows pointing down to pipeline on both sides -->
+          <line x1="195" y1="220" x2="195" y2="240" stroke="#5b6775" stroke-width="1" marker-end="url(#arrowDim)"/>
+          <line x1="585" y1="262" x2="585" y2="282" stroke="#5b6775" stroke-width="1" marker-end="url(#arrowDim)"/>
+          <defs>
+            <marker id="arrowDim" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L6,3 L0,6" fill="#5b6775"/>
+            </marker>
+            <marker id="arrowSignal" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0,0 L6,3 L0,6" fill="#f5a25d"/>
+            </marker>
+          </defs>
+        </svg>
+        <figcaption>The vehicle's problem is real-time perception and control. The company's problem is forecasting, optimization, and decision-making at fleet scale.</figcaption>
+      </figure>
+
+      <h2>Demand forecasting: the foundation</h2>
+
+      <p>Everything in fleet operations starts with one question: <strong>how many rides will happen, where, and when?</strong></p>
+
+      <p>This is spatio-temporal demand forecasting — predicting ride volume not just across time, but across geographic zones (typically hex grids or census tracts). The inputs include historical trip records, time-of-day and day-of-week patterns, weather, local events, holidays, and population density. Get this wrong and vehicles sit idle in empty neighbourhoods while passengers wait in busy ones.</p>
+
+      <p>The forecasting literature has moved through a clear progression. ARIMA and exponential smoothing handle stable, seasonal patterns well — with reported MAPE of 3–14% on stationary series. Facebook's Prophet does better on series with strong seasonality and outliers. But ride-hail demand is volatile and spatially dependent, which is where deep learning enters: LSTM networks have cut forecast error by 84–87% compared to ARIMA on non-linear demand patterns, and CNN architectures like Chen et al.'s UberNet (trained on nine months of NYC Uber data across 28 spatiotemporal features) outperformed both ARIMA and Prophet.</p>
+
+      <p>The practical lesson, though, comes from the M4 forecasting competition — the largest empirical comparison of forecasting methods ever run. The winner was not a pure deep learning model. It was a <strong>hybrid</strong> that combined recurrent neural networks with simple exponential smoothing. Pure ML methods performed poorly on their own. A simple ensemble averaging Auto-ARIMA and exponential smoothing outperformed more complex RNN-only approaches in several evaluations.</p>
+
+      <p>The takeaway for fleet operations: <strong>complexity helps only when combined with, not substituted for, simple statistical structure.</strong></p>
+
+      <h2>Forecasting isn't about predicting one number</h2>
+
+      <p>A beginner might say: "Tomorrow's demand is 12,500 rides." A data scientist should say: "Expected demand is 12,500, with a 90% prediction interval of 11,200–14,100."</p>
+
+      <p>The difference matters operationally. Fleet allocation, dynamic pricing, and vehicle repositioning decisions need to weigh the cost of under-provisioning against the cost of over-provisioning — and those costs are asymmetric. Having too few vehicles means lost revenue and frustrated passengers. Having too many means wasted energy and unnecessary wear.</p>
+
+      <p>Probabilistic forecasting methods — quantile regression, Bayesian models, Monte Carlo simulation, and conformal prediction — output distributions rather than point estimates. The XRMDN model (Extended Recurrent Mixture Density Network) was built explicitly for short-term probabilistic rider demand under high volatility. Conformal prediction is increasingly favoured for its distribution-free coverage guarantees — no distributional assumptions required, which matters when real demand regularly violates the assumptions baked into parametric methods.</p>
+
+      <!-- ============ DIAGRAM 2: Fleet Availability ============ -->
+      <figure class="post__fig">
+        <svg viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--body),Archivo,system-ui,sans-serif" role="img" aria-label="Fleet availability breakdown diagram">
+          <text x="390" y="28" text-anchor="middle" fill="#e9eef4" font-size="14" font-weight="600" letter-spacing="0.08em">FLEET AVAILABILITY IS NOT FLEET SIZE</text>
+
+          <!-- Total fleet box -->
+          <rect x="20" y="50" width="740" height="60" rx="6" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="390" y="75" text-anchor="middle" fill="#e9eef4" font-size="16" font-weight="500">Total Fleet: 1,000 vehicles</text>
+          <text x="390" y="98" text-anchor="middle" fill="#5b6775" font-size="12">Vehicles the company owns or leases</text>
+
+          <!-- Arrow down -->
+          <line x1="390" y1="114" x2="390" y2="138" stroke="#5b6775" stroke-width="1" marker-end="url(#arrowDim)"/>
+          <text x="390" y="152" text-anchor="middle" fill="#5b6775" font-size="11" letter-spacing="0.06em">MINUS</text>
+
+          <!-- Unavailable blocks -->
+          <g transform="translate(20,164)">
+            <rect x="0" y="0" width="140" height="64" rx="5" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+            <text x="70" y="26" text-anchor="middle" fill="#f5a25d" font-size="22" font-weight="500">~120</text>
+            <text x="70" y="48" text-anchor="middle" fill="#5b6775" font-size="11">Charging</text>
+
+            <rect x="155" y="0" width="140" height="64" rx="5" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+            <text x="225" y="26" text-anchor="middle" fill="#f5a25d" font-size="22" font-weight="500">~80</text>
+            <text x="225" y="48" text-anchor="middle" fill="#5b6775" font-size="11">Maintenance</text>
+
+            <rect x="310" y="0" width="140" height="64" rx="5" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+            <text x="380" y="26" text-anchor="middle" fill="#f5a25d" font-size="22" font-weight="500">~60</text>
+            <text x="380" y="48" text-anchor="middle" fill="#5b6775" font-size="11">Cleaning / offline</text>
+
+            <rect x="465" y="0" width="140" height="64" rx="5" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+            <text x="535" y="26" text-anchor="middle" fill="#f5a25d" font-size="22" font-weight="500">~40</text>
+            <text x="535" y="48" text-anchor="middle" fill="#5b6775" font-size="11">Relocating</text>
+
+            <rect x="620" y="0" width="120" height="64" rx="5" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+            <text x="680" y="26" text-anchor="middle" fill="#f5a25d" font-size="22" font-weight="500">~200</text>
+            <text x="680" y="48" text-anchor="middle" fill="#5b6775" font-size="11">On trips</text>
+          </g>
+
+          <!-- Arrow down -->
+          <line x1="390" y1="238" x2="390" y2="262" stroke="#5b6775" stroke-width="1" marker-end="url(#arrowDim)"/>
+          <text x="390" y="276" text-anchor="middle" fill="#5b6775" font-size="11" letter-spacing="0.06em">EQUALS</text>
+
+          <!-- Available fleet -->
+          <rect x="200" y="286" width="380" height="44" rx="6" fill="#18212e" stroke="#f5a25d" stroke-width="1.5"/>
+          <text x="390" y="314" text-anchor="middle" fill="#e9eef4" font-size="16" font-weight="500">Available for dispatch: ~500 vehicles</text>
+        </svg>
+        <figcaption>At any moment, roughly half a fleet is unavailable — charging, in maintenance, cleaning, relocating, or already carrying passengers. Predicting this availability is as important as predicting demand.</figcaption>
+      </figure>
+
+      <h2>Fleet availability: the hidden forecasting problem</h2>
+
+      <p>Fleet size is not fleet availability. At any given moment, vehicles are charging, under maintenance, being cleaned, relocating, experiencing technical issues, or already carrying passengers. In ride-sourcing, fleet utilization — the fraction of vehicles actively serving — peaks at roughly 50% during rush hour. Personally owned cars average about 4% utilization per day. The operational challenge is forecasting not just demand, but the supply side: how many vehicles will actually be dispatchable?</p>
+
+      <p>This requires modelling downtime distributions, charging duration, maintenance cadence, and trip-completion rates. One dispatch-optimization study found that a better matching algorithm served 93.8% of travel orders using only 76.6% of the fleet — the gap between brute-force availability and intelligent allocation is significant.</p>
+
+      <h2>The charging problem</h2>
+
+      <p>An autonomous fleet is also an electric fleet, which introduces a cascading forecasting chain:</p>
+
+      <p><strong>Ride demand &rarr; Vehicle utilization &rarr; Energy consumption &rarr; Charging demand &rarr; Infrastructure planning</strong></p>
+
+      <p>Each link in that chain is a separate modelling problem. Battery state-of-charge depends on trip distance, speed, traffic conditions, HVAC usage, and ambient temperature. Charging time depends on station capacity, charger type, and time-of-use electricity pricing. And the constraint is real: pulling a vehicle off the road to charge at the wrong time means one fewer car available during a demand spike.</p>
+
+      <p>Rossi et al. proposed a framework where a profit-maximizing platform jointly optimizes routing, charging, rebalancing, and pricing for an autonomous EV fleet — treating them as coupled decisions rather than independent ones. Another paper jointly optimized charging station siting alongside fleet operations using linear programming, minimizing the combined cost of travel time, station procurement, fleet size, and electricity.</p>
+
+      <p>Monte Carlo simulation is increasingly used for charging load forecasting, modelling the stochastic nature of charging start times, initial battery states, and trip patterns across different vehicle categories.</p>
+
+      <!-- ============ DIAGRAM 3: Decision Chain ============ -->
+      <figure class="post__fig">
+        <svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--body),Archivo,system-ui,sans-serif" role="img" aria-label="The data science decision chain from raw data to operational outcome">
+          <text x="390" y="24" text-anchor="middle" fill="#e9eef4" font-size="14" font-weight="600" letter-spacing="0.08em">THE DECISION CHAIN</text>
+
+          <g transform="translate(14,50)">
+            <!-- Step boxes -->
+            <rect x="0" y="0" width="90" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+            <text x="45" y="22" text-anchor="middle" fill="#e9eef4" font-size="12" font-weight="500">Raw Data</text>
+            <text x="45" y="38" text-anchor="middle" fill="#5b6775" font-size="9">trips, vehicles</text>
+
+            <line x1="94" y1="25" x2="114" y2="25" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+            <rect x="118" y="0" width="90" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+            <text x="163" y="22" text-anchor="middle" fill="#e9eef4" font-size="12" font-weight="500">Analytics</text>
+            <text x="163" y="38" text-anchor="middle" fill="#5b6775" font-size="9">patterns, trends</text>
+
+            <line x1="212" y1="25" x2="232" y2="25" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+            <rect x="236" y="0" width="90" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+            <text x="281" y="22" text-anchor="middle" fill="#e9eef4" font-size="12" font-weight="500">Forecast</text>
+            <text x="281" y="38" text-anchor="middle" fill="#5b6775" font-size="9">demand, supply</text>
+
+            <line x1="330" y1="25" x2="350" y2="25" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+            <rect x="354" y="0" width="90" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+            <text x="399" y="22" text-anchor="middle" fill="#e9eef4" font-size="12" font-weight="500">Simulation</text>
+            <text x="399" y="38" text-anchor="middle" fill="#5b6775" font-size="9">what-if scenarios</text>
+
+            <line x1="448" y1="25" x2="468" y2="25" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+            <rect x="472" y="0" width="100" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+            <text x="522" y="22" text-anchor="middle" fill="#e9eef4" font-size="12" font-weight="500">Optimization</text>
+            <text x="522" y="38" text-anchor="middle" fill="#5b6775" font-size="9">routing, charging</text>
+
+            <line x1="576" y1="25" x2="596" y2="25" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+            <rect x="600" y="0" width="148" height="50" rx="5" fill="#18212e" stroke="#f5a25d" stroke-width="1.5"/>
+            <text x="674" y="22" text-anchor="middle" fill="#f5a25d" font-size="12" font-weight="500">Operational</text>
+            <text x="674" y="38" text-anchor="middle" fill="#f5a25d" font-size="12" font-weight="500">Outcome</text>
+          </g>
+
+          <!-- Bottom annotation -->
+          <text x="390" y="130" text-anchor="middle" fill="#5b6775" font-size="11" font-style="italic">A modern data scientist works across this entire chain — not just the modelling step.</text>
+
+          <!-- Bracket underneath -->
+          <line x1="59" y1="108" x2="59" y2="118" stroke="#5b6775" stroke-width="1"/>
+          <line x1="59" y1="118" x2="721" y2="118" stroke="#5b6775" stroke-width="1"/>
+          <line x1="721" y1="108" x2="721" y2="118" stroke="#5b6775" stroke-width="1"/>
+          <line x1="390" y1="118" x2="390" y2="124" stroke="#5b6775" stroke-width="1"/>
+        </svg>
+        <figcaption>The role of data science in autonomous mobility stretches from raw telemetry to the business decisions that keep a fleet running.</figcaption>
+      </figure>
+
+      <h2>Simulation: what if we could create a virtual fleet?</h2>
+
+      <p>Instead of predicting everything directly, you can simulate an entire hypothetical fleet. Agent-based models treat each vehicle as an independent agent with its own state — battery level, location, current task — and let thousands of them interact with simulated passenger demand over simulated time.</p>
+
+      <p>Fagnant and Kockelman's foundational work modelled shared autonomous vehicles in Austin, Texas, evaluating how ride-sharing levels and rebalancing strategies affect the required fleet size. MATSim, an open-source agent-based transport simulator, has become the standard tool for this class of research. More recent work by Chen, Kockelman, and Hanna extended these models to include charging and rebalancing costs for shared autonomous electric vehicles.</p>
+
+      <p>The questions these simulations answer are directly operational: <em>What happens if we deploy 1,000 vehicles instead of 700? What if average trip length increases 15%? What if we cut charging infrastructure by a third?</em> Each scenario runs through the same model and produces concrete resource requirements and expected costs — turning speculation into quantified trade-offs.</p>
+
+      <p>Digital twins take this further by maintaining a live virtual replica of the real fleet, continuously updated with actual telemetry. While the concept is well established in manufacturing and logistics, large-scale deployment for robotaxi fleet management remains limited — most current work is in validation and testing rather than live operational decision-making.</p>
+
+      <h2>Optimization: from "what will happen" to "what should we do"</h2>
+
+      <p>Forecasting tells you what to expect. Optimization tells you what to do about it. This is where operations research enters.</p>
+
+      <p>Consider fleet rebalancing. When demand shifts — morning rush to downtown, evening rush to suburbs — idle vehicles need to be repositioned before demand arrives, not after. Wallar and Zee formulated this as an integer linear programme: partition the operating area into zones, estimate real-time demand per zone, then solve for the minimum-cost reassignment of idle vehicles. Other approaches use rolling-horizon optimization, solving a new dispatch problem every few minutes as conditions change.</p>
+
+      <p>The challenges are classic OR problems with a twist. The vehicle routing problem (VRP) is NP-hard, and city-scale ride matching compounds it — one study reduced real-time ride-sharing at city scale to a linear assignment problem for tractability. Fleet charging adds coupled constraints: pulling a vehicle off the road to charge at one location affects supply at every other location.</p>
+
+      <p>Reinforcement learning is emerging as an alternative to classic MILP formulations for large-scale dispatch, with multi-agent RL policies learning rebalancing strategies through simulation rather than solving them analytically. The trade-off is interpretability: an RL agent may outperform a hand-tuned heuristic, but explaining why it moved 40 vehicles to the airport at 2 AM is harder.</p>
+
+      <!-- ============ DIAGRAM 4: Scenario Modelling ============ -->
+      <figure class="post__fig">
+        <svg viewBox="0 0 780 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--body),Archivo,system-ui,sans-serif" role="img" aria-label="Scenario modelling: five what-if scenarios flowing through a model to produce resource requirements">
+          <text x="390" y="24" text-anchor="middle" fill="#e9eef4" font-size="14" font-weight="600" letter-spacing="0.08em">SCENARIO MODELLING</text>
+
+          <!-- Scenarios on the left -->
+          <rect x="20" y="48" width="210" height="36" rx="4" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="125" y="71" text-anchor="middle" fill="#8d9aa9" font-size="12">A: Demand increases 20%</text>
+
+          <rect x="20" y="94" width="210" height="36" rx="4" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="125" y="117" text-anchor="middle" fill="#8d9aa9" font-size="12">B: Fleet grows to 1,500</text>
+
+          <rect x="20" y="140" width="210" height="36" rx="4" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="125" y="163" text-anchor="middle" fill="#8d9aa9" font-size="12">C: Trip length +15%</text>
+
+          <rect x="20" y="186" width="210" height="36" rx="4" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="125" y="209" text-anchor="middle" fill="#8d9aa9" font-size="12">D: Charging cut by 30%</text>
+
+          <rect x="20" y="232" width="210" height="36" rx="4" fill="#18212e" stroke="#1b2431" stroke-width="1"/>
+          <text x="125" y="255" text-anchor="middle" fill="#8d9aa9" font-size="12">E: New city launch</text>
+
+          <!-- Arrows to model -->
+          <line x1="234" y1="66" x2="310" y2="156" stroke="#5b6775" stroke-width="1"/>
+          <line x1="234" y1="112" x2="310" y2="156" stroke="#5b6775" stroke-width="1"/>
+          <line x1="234" y1="158" x2="310" y2="156" stroke="#5b6775" stroke-width="1"/>
+          <line x1="234" y1="204" x2="310" y2="156" stroke="#5b6775" stroke-width="1"/>
+          <line x1="234" y1="250" x2="310" y2="156" stroke="#5b6775" stroke-width="1"/>
+
+          <!-- Model box -->
+          <rect x="314" y="120" width="152" height="72" rx="6" fill="#111823" stroke="#f5a25d" stroke-width="1.5"/>
+          <text x="390" y="150" text-anchor="middle" fill="#f5a25d" font-size="13" font-weight="500">Simulation</text>
+          <text x="390" y="168" text-anchor="middle" fill="#f5a25d" font-size="13" font-weight="500">Model</text>
+          <text x="390" y="184" text-anchor="middle" fill="#5b6775" font-size="10">forecast + optimize</text>
+
+          <!-- Arrow to outputs -->
+          <line x1="470" y1="156" x2="530" y2="100" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+          <line x1="470" y1="156" x2="530" y2="156" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+          <line x1="470" y1="156" x2="530" y2="212" stroke="#f5a25d" stroke-width="1" marker-end="url(#arrowSignal)"/>
+
+          <!-- Output boxes -->
+          <rect x="534" y="76" width="226" height="46" rx="4" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+          <text x="647" y="96" text-anchor="middle" fill="#e9eef4" font-size="12">Fleet + charging needs</text>
+          <text x="647" y="112" text-anchor="middle" fill="#5b6775" font-size="10">vehicles, stations, energy</text>
+
+          <rect x="534" y="134" width="226" height="46" rx="4" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+          <text x="647" y="154" text-anchor="middle" fill="#e9eef4" font-size="12">Staffing requirements</text>
+          <text x="647" y="170" text-anchor="middle" fill="#5b6775" font-size="10">operators, maintenance crew</text>
+
+          <rect x="534" y="192" width="226" height="46" rx="4" fill="#18212e" stroke="#f5a25d" stroke-width="1"/>
+          <text x="647" y="212" text-anchor="middle" fill="#e9eef4" font-size="12">Cost + utilization</text>
+          <text x="647" y="228" text-anchor="middle" fill="#5b6775" font-size="10">expected ROI, service level</text>
+
+          <!-- Bottom note -->
+          <text x="390" y="300" text-anchor="middle" fill="#5b6775" font-size="11" font-style="italic">Each scenario produces a concrete resource plan — turning "what if" into quantified trade-offs.</text>
+        </svg>
+        <figcaption>Scenario modelling lets operations teams test hypothetical fleet configurations before committing real capital.</figcaption>
+      </figure>
+
+      <h2>The humans behind the autonomous fleet</h2>
+
+      <p>Even fully autonomous vehicles require humans in the operational loop. Waymo currently employs approximately 70 remote assistance agents at any time to cover its fleet of roughly 3,000 vehicles — a 1:43 operator-to-vehicle ratio, split between US and Philippines-based teams, with a separate US-only event response team for collisions and emergencies. Pony.ai reported a ratio closer to 1:20 with a goal of reaching 1:30. Zoox uses a system called TeleGuidance, where human operators take over when the vehicle encounters situations it cannot resolve — construction zones, unusual road configurations, conflicting signals.</p>
+
+      <p>This creates its own forecasting problem: how many operations staff will we need next month? The inputs include fleet size, vehicle incident rates, maintenance volume, charging cycles, geographic expansion, and time-of-day patterns. Academic literature on this specific problem is thin — workforce forecasting for autonomous fleets is genuinely under-researched compared to demand forecasting or routing, making it a real gap in the field.</p>
+
+      <h2>When LLMs meet fleet analytics</h2>
+
+      <p>The most concrete deployment of generative AI in mobility analytics is Uber's QueryGPT — a multi-agent system that translates natural-language questions into SQL queries across Uber's data platform. Against roughly 1.2 million interactive queries per month, it reduced query-authoring time by 70%, saving an estimated 140,000 analyst-hours monthly. The system organises queries into domain "workspaces" including one specifically for mobility operations.</p>
+
+      <p>The broader application is shifting analytics from reactive to agentic: instead of an analyst writing a query after noticing a problem, an AI agent continuously monitors fleet utilization, downtime, and demand anomalies, surfacing issues before they become operational failures. An analyst could ask: <em>"What happens if demand increases by 30% next month?"</em> and receive a structured scenario analysis with fleet requirements, charging needs, and staffing implications.</p>
+
+      <p>But the caution is important. LLMs hallucinate. At enterprise scale — say 10,000 analytical queries per day — even a conservative 15% hallucination rate means 1,500 wrong answers entering business decisions daily. The right architecture is <strong>human-in-the-loop</strong>: AI analyses, recommends, and explains, while humans validate, approve, and act. This is not a limitation — it is the design. LLMs are a tool within the decision-making system, not the system itself.</p>
+
+      <!-- ============ DIAGRAM 5: Human-in-the-Loop ============ -->
+      <figure class="post__fig">
+        <svg viewBox="0 0 780 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--body),Archivo,system-ui,sans-serif" role="img" aria-label="Human-in-the-loop AI: AI analyses, recommends, explains while humans validate, approve, act">
+          <!-- AI side -->
+          <rect x="40" y="30" width="300" height="120" rx="8" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+          <text x="190" y="56" text-anchor="middle" fill="#e9eef4" font-size="13" font-weight="500">AI System</text>
+          <g transform="translate(60,72)">
+            <rect x="0" y="0" width="80" height="28" rx="14" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="40" y="18" text-anchor="middle" fill="#f5a25d" font-size="11">Analyse</text>
+            <rect x="90" y="0" width="96" height="28" rx="14" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="138" y="18" text-anchor="middle" fill="#f5a25d" font-size="11">Recommend</text>
+            <rect x="196" y="0" width="72" height="28" rx="14" fill="none" stroke="#f5a25d" stroke-width="1"/>
+            <text x="232" y="18" text-anchor="middle" fill="#f5a25d" font-size="11">Explain</text>
+          </g>
+          <text x="190" y="130" text-anchor="middle" fill="#5b6775" font-size="10">pattern detection, forecasting, scenarios</text>
+
+          <!-- Arrow -->
+          <line x1="348" y1="90" x2="428" y2="90" stroke="#f5a25d" stroke-width="1.5" marker-end="url(#arrowSignal)"/>
+
+          <!-- Human side -->
+          <rect x="436" y="30" width="300" height="120" rx="8" fill="#111823" stroke="#1b2431" stroke-width="1"/>
+          <text x="586" y="56" text-anchor="middle" fill="#e9eef4" font-size="13" font-weight="500">Human Decision-Maker</text>
+          <g transform="translate(460,72)">
+            <rect x="0" y="0" width="76" height="28" rx="14" fill="none" stroke="#9fc6ef" stroke-width="1"/>
+            <text x="38" y="18" text-anchor="middle" fill="#9fc6ef" font-size="11">Validate</text>
+            <rect x="86" y="0" width="76" height="28" rx="14" fill="none" stroke="#9fc6ef" stroke-width="1"/>
+            <text x="124" y="18" text-anchor="middle" fill="#9fc6ef" font-size="11">Approve</text>
+            <rect x="172" y="0" width="62" height="28" rx="14" fill="none" stroke="#9fc6ef" stroke-width="1"/>
+            <text x="203" y="18" text-anchor="middle" fill="#9fc6ef" font-size="11">Act</text>
+          </g>
+          <text x="586" y="130" text-anchor="middle" fill="#5b6775" font-size="10">judgment, accountability, domain expertise</text>
+        </svg>
+        <figcaption>The right architecture for operational AI is not full automation — it is a system where AI handles analysis and humans own the decisions.</figcaption>
+      </figure>
+
+      <h2>Data quality: the unsexy prerequisite</h2>
+
+      <p>None of this works without clean data. Mobility data — trip records, pickup/dropoff coordinates, trip duration, distance, timestamps — needs to be joined with vehicle telemetry (battery level, charging status, maintenance logs, utilization) and external signals (weather, events, holidays, traffic, population). The data engineering underneath a fleet analytics stack is substantial.</p>
+
+      <p>A particularly dangerous failure mode in fleet forecasting is <strong>temporal data leakage</strong> — accidentally training a model on information that wouldn't have been available at prediction time. Computing rolling averages using future timestamps, shuffling data before train/test splits (breaking temporal order), or applying standard k-fold cross-validation on sequential data all inflate evaluation metrics and produce models that look accurate in development and fail in production. The fix is forward-chaining (walk-forward) validation and strictly backward-looking feature windows.</p>
+
+      <h2>Measuring success</h2>
+
+      <p>The final shift in thinking is about what "success" means. Model accuracy — MAE, RMSE, MAPE — is necessary but not sufficient. What matters operationally is whether the model improved the decision:</p>
+
+      <ul class="post__list">
+        <li>Did fleet utilization increase?</li>
+        <li>Did passenger wait times decrease?</li>
+        <li>Did charging costs fall without stranding vehicles?</li>
+        <li>Did staffing match actual operational load?</li>
+      </ul>
+
+      <p>A model with 12% MAPE that consistently overestimates evening demand by just enough to avoid shortages might be operationally superior to one with 8% MAPE that distributes its error symmetrically. The metric has to match the cost function of the business, not the convention of the literature.</p>
+
+      <h2>Conclusion</h2>
+
+      <p>Autonomous mobility is often framed as an engineering challenge: teach a vehicle to drive itself. But as autonomous fleets scale, another layer becomes equally important — the ability to understand, predict, and optimize everything happening around those vehicles. The data science problems here are not about building a better classifier. They are about forecasting demand across space and time, balancing supply against stochastic availability, scheduling charging without starving dispatch, sizing workforces against fleet growth curves, and running simulations to test decisions before committing capital.</p>
+
+      <p>The future of autonomous mobility may not be defined only by how well a vehicle drives, but by how intelligently the entire system operates.</p>
+
+      <h3>References &amp; further reading</h3>
+
+      <ul class="post__list">
+        <li>Chen, Thakuriah &amp; Ampountolas. "Short-Term Prediction of Demand for Ride-Hailing Services." <em>Journal of Big Data Analytics in Transportation</em>, Vol. 3, 2021.</li>
+        <li>Fagnant &amp; Kockelman. Agent-based shared autonomous vehicle model, Austin TX. Updated 2018.</li>
+        <li>Rossi et al. "Smart Charging Benefits in Autonomous Mobility on Demand Systems." arXiv:1907.00106.</li>
+        <li>Wallar &amp; Zee et al. "Vehicle Rebalancing for Mobility-on-Demand Systems with Ride-Sharing."</li>
+        <li>M4 Forecasting Competition. Makridakis et al., 2018 — hybrid methods outperform pure ML.</li>
+        <li>XRMDN: Extended Recurrent Mixture Density Network for probabilistic rider demand. arXiv:2310.09847.</li>
+        <li>Uber Engineering. "QueryGPT: Natural Language to SQL." 2023–2024.</li>
+      </ul>
+    </div>
+
+    <div class="post__tags">
+      <span class="post__tag">Data Science</span>
+      <span class="post__tag">Autonomous Vehicles</span>
+      <span class="post__tag">Forecasting</span>
+      <span class="post__tag">Operations Research</span>
+      <span class="post__tag">Fleet Management</span>
+      <span class="post__tag">Machine Learning</span>
+    </div>
+
+    <footer class="post__foot">
+      <a class="back" href="writing.html" data-back>All writing</a>
+    </footer>
+  </article>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span>Boston, Massachusetts</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

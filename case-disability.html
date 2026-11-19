@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>US household disability prediction — case study — Jai Sharma</title>
+<meta name="description" content="Nine classifiers crossed with four class-balancing techniques on 9,241 households from the 2023 American Housing Survey — and plain random undersampling won.">
+<link rel="canonical" href="https://sharmajai.com/case-disability.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Thirty-six models, and the simplest fix won">
+<meta property="og:description" content="A controlled bake-off of 9 classifiers × 4 balancing techniques on the 2023 American Housing Survey.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <a class="back" href="projects.html" data-back> All projects</a>
+    <span class="label">Case study · Data science · American Housing Survey 2023</span>
+    <h1 class="display">Thirty-six models, and the simplest fix won.</h1>
+    <p class="lede">Disability is a minority outcome in national survey data, so a model
+      tuned for raw accuracy learns to predict "no disability" every time. It looks 90%
+      accurate and is completely useless. The real question is not which classifier —
+      it is which classifier <em>paired with</em> which imbalance fix.</p>
+  </section>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><span class="stat__v">9,241</span><span class="label stat__l">households in the sample</span></div>
+      <div class="stat"><span class="stat__v">145</span><span class="label stat__l">features per household</span></div>
+      <div class="stat"><span class="stat__v">36</span><span class="label stat__l">pipelines on one identical split</span></div>
+      <div class="stat"><span class="stat__v">Undersampling</span><span class="label stat__l">the winner, and the least fancy option</span></div>
+    </div>
+  </div>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <span class="label" style="display:block;margin-bottom:1.5rem">The bake-off</span>
+      <div class="pipe">
+        <div class="pipe__node"><span class="label">Source</span><b>AHS 2023</b></div>
+        <div class="pipe__node"><span class="label">Prepare</span><b>Clean &amp; encode</b></div>
+        <div class="pipe__node"><span class="label">Grid</span><b>9 × 4 pipelines</b></div>
+        <div class="pipe__node"><span class="label">Train</span><b>One shared split</b></div>
+        <div class="pipe__node"><span class="label">Score</span><b>Minority recall / F1</b></div>
+        <div class="pipe__node"><span class="label">Winner</span><b>Random undersampling</b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+    <section class="block">
+      <span class="label block__label">The problem</span>
+      <div class="prose">
+        <p>On 9,241 households described by 145 features from the 2023 American Housing
+          Survey, disability is the minority class. Optimise for accuracy and the model
+          discovers the shortcut immediately: always answer no. High score, zero value.</p>
+        <p>The usual response is to reach for SMOTE and move on. But the choice of
+          classifier and the choice of balancing strategy <strong>interact</strong> —
+          a balancer that rescues a decision tree can wreck a linear model. Testing them
+          separately tells you very little. So I tested every combination.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">What I did</span>
+      <div>
+        <ol class="stepped">
+          <li><strong>Prepared the survey data.</strong> 9,241 households × 145 features,
+            cleaned and encoded, with a stratified train/test split held constant for
+            everything that followed.</li>
+          <li><strong>Defined the grid.</strong> Nine classifiers crossed with four
+            balancing strategies — none, random oversampling, SMOTE, and random
+            undersampling — giving 36 complete pipelines.</li>
+          <li><strong>Trained every combination on the identical split.</strong> This is
+            the part that makes the comparison mean anything. One split, one preprocessing
+            path, 36 outcomes that can actually be ranked against each other.</li>
+          <li><strong>Ranked on minority-aware metrics.</strong> F1 and recall on the
+            disability class, never on overall accuracy — the metric that made the
+            problem invisible in the first place.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Results</span>
+      <div>
+        <table class="table">
+          <caption class="sr">Experiment configuration and outcome</caption>
+          <thead><tr><th scope="col">Dimension</th><th scope="col">Value</th></tr></thead>
+          <tbody>
+            <tr><td>Data</td><td>9,241 × 145</td></tr>
+            <tr><td>Grid</td><td>9 classifiers × 4 balancers</td></tr>
+            <tr><td>Pipelines trained</td><td>36</td></tr>
+            <tr><td>Ranking metric</td><td>Minority-class F1 / recall</td></tr>
+            <tr><td>Best balancing strategy</td><td>Random undersampling</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Key finding</span>
+      <div>
+        <p class="finding">Random undersampling — throwing majority rows away, the crudest
+          option on the list — beat SMOTE and every synthetic alternative. The expensive
+          technique is not automatically the right one.</p>
+        <div class="prose" style="margin-top:2rem">
+          <p>That result is less surprising than it first sounds. SMOTE interpolates between
+            minority neighbours in feature space, and with 145 mostly categorical survey
+            features, the points it invents can land somewhere no real household lives.
+            Undersampling never invents anything. It pays for that with variance, which is
+            the trade this dataset happened to favour.</p>
+        </div>
+        <div class="chips" style="margin-top:2rem">
+          <span class="chip">scikit-learn</span><span class="chip">imbalanced-learn</span>
+          <span class="chip">Pandas</span><span class="chip">SMOTE</span>
+          <span class="chip">Stratified splitting</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Still to come</span>
+      <div class="prose">
+        <p>This write-up is shorter than the other two on purpose. The full comparison
+          heatmap across all 36 pipelines, the winning model's confusion matrix, and its
+          exact final F1 are not published here yet — and I would rather leave a gap than
+          fill it with a number I haven't rechecked against the held-out set.</p>
+        <p>Happy to walk through the notebook directly in the meantime.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Read further</span>
+      <div>
+        <div class="docs">
+          <a class="doc" data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener"><span>Code on GitHub</span><span class="doc__kind">REPO</span></a>
+          <a class="doc" href="contact.html"><span>Ask for the notebook</span><span class="doc__kind">EMAIL</span></a>
+        </div>
+        <div class="hero__cta" style="margin-top:2.5rem">
+          <a class="btn" href="case-hand-oa.html" data-arrow>Back to the first case study</a>
+          <a class="btn" href="projects.html" data-arrow>All projects</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span><a data-site="email" href="mailto:sharmajai.us@gmail.com">sharmajai.us@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

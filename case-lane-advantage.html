@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lane advantage in sprinting — case study — Jai Sharma</title>
+<meta name="description" content="A decade of Olympic and World Championship sprint results tested in R. Middle lanes win 8.2% of races and inside lanes 0% — yet finishing times across lanes are statistically identical.">
+<link rel="canonical" href="https://sharmajai.com/case-lane-advantage.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Middle lanes win more sprints. Not because they run faster.">
+<meta property="og:description" content="866 elite sprint entries, tested with chi-square, logistic regression, ANOVA and Tukey HSD.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <a class="back" href="projects.html" data-back> All projects</a>
+    <span class="label">Case study · Sports analytics · Elite sprinting · R</span>
+    <h1 class="display">Middle lanes win more sprints. Not because they run faster.</h1>
+    <p class="lede">A decade of elite sprint results, tested properly, to settle a piece of
+      track folklore. Lane and winning turn out to be strongly dependent — and finishing
+      times across lanes turn out to be statistically identical. Both things are true at once,
+      and that is the whole finding.</p>
+  </section>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><span class="stat__v">866</span><span class="label stat__l">race entries, 2008–2023</span></div>
+      <div class="stat"><span class="stat__v">8.2%</span><span class="label stat__l">middle-lane win rate</span></div>
+      <div class="stat"><span class="stat__v">0.0%</span><span class="label stat__l">inside-lane win rate</span></div>
+      <div class="stat"><span class="stat__v">p = 0.992</span><span class="label stat__l">difference in finishing time by lane</span></div>
+    </div>
+  </div>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <span class="label" style="display:block;margin-bottom:1.5rem">The analysis</span>
+      <div class="pipe">
+        <div class="pipe__node"><span class="label">Collect</span><b>Scrape 866 races</b></div>
+        <div class="pipe__node"><span class="label">Clean</span><b>R · tidyverse</b></div>
+        <div class="pipe__node"><span class="label">Test</span><b>Chi-square</b></div>
+        <div class="pipe__node"><span class="label">Model</span><b>Logistic + ANOVA</b></div>
+        <div class="pipe__node"><span class="label">Group</span><b>Tukey HSD</b></div>
+        <div class="pipe__node"><span class="label">Answer</span><b>Structural</b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+    <section class="block">
+      <span class="label block__label">The problem</span>
+      <div class="prose">
+        <p>Sprint lanes are not identical. Inside lanes run a tighter curve with worse
+          visibility of the field; outside lanes get a flatter curve but nobody to chase.
+          Athletes and commentators have claimed for decades that middle lanes win more —
+          and the claim is rarely tested at any scale.</p>
+        <p>Two questions, and the second is the interesting one. Does lane assignment
+          actually change who wins? And if it does, is that because those athletes are
+          running faster, or because of something else entirely?</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">What I did</span>
+      <div>
+        <ol class="stepped">
+          <li><strong>Built the dataset.</strong> Web-scraped roughly 866 sprint entries
+            across the 100m, 200m and 400m from the Olympics and World Championships,
+            2008 to 2023, then cleaned and reshaped it in R with the tidyverse.</li>
+          <li><strong>Tested lane against winning.</strong> Chi-square gave
+            χ²(8) = 50.58, p = 3.16×10⁻⁸. Lane and winning are emphatically not independent.</li>
+          <li><strong>Checked whether it's linear.</strong> Logistic regression put each
+            step outward at roughly 7.6% higher win odds (OR 1.076), but as a linear term
+            it was not significant (p = 0.26). That is the clue: the effect is about
+            <em>the middle</em>, not about a direction.</li>
+          <li><strong>Tested time against lane.</strong> ANOVA gave F(8, 857) = 0.19,
+            p = 0.992. No lane is faster. Finishing times are statistically identical.</li>
+          <li><strong>Grouped and confirmed.</strong> Binned into inside (1–2), middle (3–6)
+            and outside (7–9): χ²(2) = 20.88, p &lt; 0.0001 for winning. A two-way ANOVA
+            confirmed the pattern holds across all three events with no interaction (p = 0.97).</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">The two charts that matter</span>
+      <div class="plate-grid plate-grid--2">
+        <figure class="plate">
+          <div class="plate__img">
+            <img src="assets/figures/sports-analytics/win-probability-by-lane.png" alt="Win probability by lane, peaking around 13% at lanes 5 and 6 and falling to zero at lanes 1 and 2" loading="lazy">
+          </div>
+          <figcaption><b>Win probability by lane.</b> It peaks at lanes 5–6 around 13%
+            and is flat zero at lanes 1–2. Across fifteen years of championship sprinting,
+            nobody won from the two innermost lanes.</figcaption>
+        </figure>
+        <figure class="plate">
+          <div class="plate__img">
+            <img src="assets/figures/sports-analytics/mean-time-by-lane.png" alt="Mean finishing time by lane, showing no consistent pattern across lanes" loading="lazy">
+          </div>
+          <figcaption><b>Mean finishing time by lane.</b> No pattern, no trend, nothing.
+            ANOVA p = 0.992. This is the chart that turns the finding from folklore
+            confirmation into something more interesting.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Results</span>
+      <div>
+        <table class="table">
+          <caption class="sr">Statistical test results</caption>
+          <thead><tr><th scope="col">Test</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>Lane–win association (chi-square)</td><td>χ² = 50.6, p = 3×10⁻⁸</td></tr>
+            <tr><td>Grouped lane–win association</td><td>χ²(2) = 20.9, p &lt; 0.0001</td></tr>
+            <tr><td>Middle-lane win rate</td><td>8.2%</td></tr>
+            <tr><td>Outside-lane win rate</td><td>2.9%</td></tr>
+            <tr><td>Inside-lane win rate</td><td>0.0%</td></tr>
+            <tr><td>Finishing time by lane (ANOVA)</td><td>F = 0.19, p = 0.992</td></tr>
+            <tr><td>Lane × event interaction</td><td>p = 0.97 (none)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Key finding</span>
+      <div>
+        <p class="finding">Middle lanes give athletes the best chance of winning even
+          though athletes in every lane run statistically identical times. The advantage
+          is structural — race dynamics and the ability to see the field — not
+          physiological.</p>
+        <div class="prose" style="margin-top:2rem">
+          <p>Worth stating what this does <em>not</em> establish. Lane assignment at this
+            level is earned by semi-final performance, so the fastest qualifiers are
+            allocated middle lanes by design. This analysis shows the association is real
+            and that raw speed does not explain it; cleanly separating seeding from race
+            dynamics would need heat-level data this dataset doesn't carry.</p>
+        </div>
+        <div class="chips" style="margin-top:2rem">
+          <span class="chip">R</span><span class="chip">tidyverse</span>
+          <span class="chip">Chi-square</span><span class="chip">Logistic regression</span>
+          <span class="chip">ANOVA</span><span class="chip">Tukey HSD</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Read further</span>
+      <div>
+        <div class="docs">
+          <a class="doc" href="assets/documents/Lane_Advantage_Report.pdf" target="_blank" rel="noopener"><span>Full report</span><span class="doc__kind">PDF</span></a>
+          <a class="doc" data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener"><span>R code on GitHub</span><span class="doc__kind">REPO</span></a>
+        </div>
+        <div class="hero__cta" style="margin-top:2.5rem">
+          <a class="btn" href="case-disability.html" data-arrow>Next case study</a>
+          <a class="btn" href="contact.html" data-arrow>Ask me about it</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span><a data-site="email" href="mailto:sharmajai.us@gmail.com">sharmajai.us@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

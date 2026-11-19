@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hand OA X-ray synthesis — case study — Jai Sharma</title>
+<meta name="description" content="A class-conditional latent diffusion model that synthesises severe-grade hand osteoarthritis X-rays, lifting 5-class AUC from 0.878 to 0.908 and the rarest grade by +0.072.">
+<link rel="canonical" href="https://sharmajai.com/case-hand-oa.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Teaching a diffusion model to draw the X-rays we don't have">
+<meta property="og:description" content="Class-conditional latent diffusion for hand osteoarthritis. 5-class AUC 0.878 → 0.908; +0.072 on the rarest grade.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <a class="back" href="projects.html" data-back> All projects</a>
+    <span class="label">Case study · Computer vision · Medical imaging</span>
+    <h1 class="display">Teaching a diffusion model to draw the X-rays we don't have.</h1>
+    <p class="lede">The first known class-conditional latent diffusion pipeline for hand
+      osteoarthritis radiographs. It lifted 5-class severity AUC from 0.878 to 0.908 and
+      recovered the near-invisible KL4 class by <span class="fig">+0.072</span> AUC —
+      all on a single cloud GPU.</p>
+  </section>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><span class="stat__v">13,176</span><span class="label stat__l">DIP-joint X-rays from 3,505 patients</span></div>
+      <div class="stat"><span class="stat__v">2.9%</span><span class="label stat__l">of the data was severe disease</span></div>
+      <div class="stat"><span class="stat__v">0.878 → 0.908</span><span class="label stat__l">5-class macro AUC</span></div>
+      <div class="stat"><span class="stat__v">+0.072</span><span class="label stat__l">AUC gain on KL4, the rarest grade</span></div>
+    </div>
+  </div>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <span class="label" style="display:block;margin-bottom:1.5rem">The pipeline</span>
+      <div class="pipe">
+        <div class="pipe__node"><span class="label">Input</span><b>13,176 X-rays</b></div>
+        <div class="pipe__node"><span class="label">Compress</span><b>VAE → 22×22×8</b></div>
+        <div class="pipe__node"><span class="label">Generate</span><b>KL-conditioned UNet</b></div>
+        <div class="pipe__node"><span class="label">Synthesise</span><b>1,500 X-rays</b></div>
+        <div class="pipe__node"><span class="label">Retrain</span><b>ResNet-18</b></div>
+        <div class="pipe__node"><span class="label">Result</span><b>5-class AUC ↑</b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+    <section class="block">
+      <span class="label block__label">The problem</span>
+      <div class="prose">
+        <p>Hand osteoarthritis severity is graded 0 to 4 on the Kellgren–Lawrence scale.
+          In this 13,176-image dataset of DIP-joint radiographs, grades 3 and 4 —
+          the severe cases — make up <strong>2.9% of the data</strong>. There are 118 real
+          KL4 images against 5,947 KL0 images. That is a fifty-fold imbalance on exactly
+          the grades that change a treatment decision.</p>
+        <p>A classifier trained on that skew learns to be confidently wrong about severe
+          disease. You cannot simply collect more severe scans, and naive oversampling
+          just memorises the same handful of images. So the question became: can you
+          <em>synthesise</em> clinically faithful severe-grade X-rays that measurably
+          improve the classifier, without leaking a single patient between train and test?</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">The imbalance</span>
+      <figure class="plate">
+        <div class="plate__img">
+          <img src="assets/figures/computer-vision/class-imbalance.png" alt="Bar chart of Kellgren–Lawrence grade distribution in the training set, showing 5,947 KL0 images falling to 118 KL4 images" loading="lazy">
+        </div>
+        <figcaption><b>KL grade distribution in the training set.</b> 5,947 images at
+          KL0 (healthy), falling to 144 at KL3 and 118 at KL4. The two grades that matter
+          most clinically are the two the model sees least.</figcaption>
+      </figure>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">What I did</span>
+      <div>
+        <ol class="stepped">
+          <li><strong>Curated and de-leaked the data.</strong> 13,176 DIP-joint X-rays from
+            3,505 patients at Boston University and Tufts Medical Center, split 70/15/15 at
+            the <em>patient</em> level and stratified by maximum KL grade, with zero leakage
+            verified programmatically. A real bug surfaced here: matching images on the
+            internal scoring ID gave a 0% match rate. Switching to the OAI participant ID
+            took it to 100%.</li>
+          <li><strong>Compressed with a VAE.</strong> Each 180×180 grayscale radiograph
+            becomes a 22×22×8 latent — a 16:1 compression — so diffusion runs cheaply and
+            spends its capacity on anatomy rather than pixels.</li>
+          <li><strong>Trained a class-conditional latent diffusion model.</strong> A DDPM
+            UNet denoises in latent space with the KL grade injected by scale-and-shift at
+            every block, plus classifier-free guidance. It generates 300 images per grade,
+            1,500 in total.</li>
+          <li><strong>Sourced the severe grades from real anatomy.</strong> KL0–2 are
+            generated from pure noise. KL3–4 are seeded from a real KL0–2 image re-noised
+            at 60% strength, which preserves authentic bone structure — and produced the
+            lowest FID of any grade for KL3 at 139.6.</li>
+          <li><strong>Built a CycleGAN baseline to beat.</strong> Unpaired healthy ↔ diseased
+            translation, the obvious alternative approach.</li>
+          <li><strong>Retrained and evaluated honestly.</strong> ResNet-18 retrained on real
+            plus synthetic at 10–200% ratios, three seeds each — 51 classifier runs — scored
+            by per-grade AUC on a held-out patient set never used in training or generation.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Architecture</span>
+      <figure class="plate">
+        <div class="plate__img">
+          <img src="assets/figures/computer-vision/ldm-architecture.png" alt="Diagram of the pipeline: VAE encoder compresses the X-ray to a latent, a KL-conditioned UNet denoises it, and the VAE decoder reconstructs a generated X-ray" loading="lazy">
+        </div>
+        <figcaption><b>VAE encoder → KL-conditioned UNet denoiser → VAE decoder.</b>
+          The grade is not a suggestion to the model; it is injected at every block,
+          which is precisely what the CycleGAN baseline had no way to do.</figcaption>
+      </figure>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Does it look right?</span>
+      <div class="plate-grid plate-grid--2">
+        <figure class="plate">
+          <div class="plate__img">
+            <img src="assets/figures/computer-vision/samples-real-vs-synthetic.png" alt="Top row of real hand X-rays compared with a bottom row of diffusion-generated X-rays" loading="lazy">
+          </div>
+          <figcaption><b>Real (top) versus generated (bottom).</b> The generated
+            series shows visible OA progression — smooth bone margins at KL0 through
+            osteophytes and joint-space narrowing at KL3 to sclerosis and deformity at KL4.</figcaption>
+        </figure>
+        <figure class="plate">
+          <div class="plate__img">
+            <img src="assets/figures/computer-vision/fid-per-grade.png" alt="FID score per KL grade, ranging from about 139 to 153, lowest at KL3" loading="lazy">
+          </div>
+          <figcaption><b>FID per grade, 139–153.</b> KL3 scores best, which is the
+            real-image-sourced generation strategy paying off. These FIDs read high against
+            knee-OA literature partly because the reference sets for the rare grades are
+            about 118 images — small references inflate FID by design.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Results</span>
+      <div>
+        <table class="table">
+          <caption class="sr">Classification results before and after diffusion augmentation</caption>
+          <thead><tr><th scope="col">Metric</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>Overall 5-class macro AUC</td><td>0.878 → 0.908</td></tr>
+            <tr><td>KL4 (severe) AUC</td><td>0.856 → 0.928</td></tr>
+            <tr><td>KL3 AUC gain</td><td>+0.041</td></tr>
+            <tr><td>Seed-to-seed variance</td><td>0.0148 → 0.0010</td></tr>
+            <tr><td>Seeds improved</td><td>3 of 3</td></tr>
+            <tr><td>CycleGAN baseline</td><td>no reliable gain</td></tr>
+          </tbody>
+        </table>
+
+        <div class="plate-grid plate-grid--2" style="margin-top:2.5rem">
+          <figure class="plate">
+            <div class="plate__img">
+              <img src="assets/figures/computer-vision/results-per-class-auc.png" alt="Per-class AUC at baseline versus 50% and 200% synthetic augmentation, with the largest gains at KL3 and KL4" loading="lazy">
+            </div>
+            <figcaption><b>Per-class AUC: baseline vs +50% vs +200% synthetic.</b>
+              Improvement is inversely proportional to how much real data the class had.
+              KL4, with 118 real images, gains roughly fourteen times what KL0 gains
+              with 5,947.</figcaption>
+          </figure>
+          <figure class="plate">
+            <div class="plate__img">
+              <img src="assets/figures/computer-vision/results-auc-vs-ratio.png" alt="Line chart showing macro AUC rising steadily from the baseline through 200% synthetic ratio" loading="lazy">
+            </div>
+            <figcaption><b>AUC against synthetic ratio.</b> The commonly cited 50% cap on
+              synthetic-to-real data turned out to be conservative here — performance kept
+              climbing all the way to 200%.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">What didn't work</span>
+      <div class="prose">
+        <p>The CycleGAN baseline delivered no reliable improvement, and it is worth being
+          precise about why: this was a <strong>structural limitation, not a tuning
+          failure</strong>. CycleGAN maps between two domains. It has no grade-conditioning
+          input, so it can express "healthy ↔ diseased" and nothing finer. That makes the
+          five-class task unreachable by design, no matter how long you train it. Bone
+          structure also degraded visibly with severity in its outputs.</p>
+        <p>The honest limitations of the diffusion approach: FID sits at 140–152, which
+          leaves real room for higher fidelity. 180×180 is below clinical resolution.
+          And this is a single-site cohort — multi-site validation and a radiologist
+          reader study are the next steps before anyone should believe it clinically.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Key finding</span>
+      <div>
+        <p class="finding">Synthetic data concentrates its value exactly where real data
+          is scarcest — and the architectural lever is class-conditioning, not model size.
+          That single capability is what makes the five-class task possible at all.</p>
+        <div class="chips" style="margin-top:2.5rem">
+          <span class="chip">PyTorch</span><span class="chip">Latent Diffusion</span>
+          <span class="chip">CycleGAN</span><span class="chip">VAE</span>
+          <span class="chip">ResNet-18</span><span class="chip">Classifier-free guidance</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">The poster</span>
+      <figure class="plate">
+        <div class="plate__img">
+          <img src="assets/figures/computer-vision/poster-web.jpg" alt="Conference poster summarising the project: introduction, methods, results and generated samples" loading="lazy">
+        </div>
+        <figcaption><b>The full conference poster.</b>
+          <a class="link" href="assets/documents/HandOA_Poster.svg" target="_blank" rel="noopener">Open the vector original</a>
+          for a readable version.</figcaption>
+      </figure>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Read further</span>
+      <div>
+        <div class="docs">
+          <a class="doc" href="assets/documents/HandOA_LDM_Report.docx"><span>Full technical report</span><span class="doc__kind">DOCX</span></a>
+          <a class="doc" href="assets/documents/HandOA_LDM_Slides.pptx"><span>Presentation slides</span><span class="doc__kind">PPTX</span></a>
+          <a class="doc" href="assets/documents/HandOA_Poster.svg" target="_blank" rel="noopener"><span>Conference poster</span><span class="doc__kind">SVG</span></a>
+          <a class="doc" data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener"><span>Code on GitHub</span><span class="doc__kind">REPO</span></a>
+        </div>
+        <div class="hero__cta" style="margin-top:2.5rem">
+          <a class="btn" href="case-lane-advantage.html" data-arrow>Next case study</a>
+          <a class="btn" href="contact.html" data-arrow>Ask me about it</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span><a data-site="email" href="mailto:sharmajai.us@gmail.com">sharmajai.us@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

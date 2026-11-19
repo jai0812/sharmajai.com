@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Activity Recognition on Spark — case study — Jai Sharma</title>
+<meta name="description" content="KNN written from scratch on PySpark RDD primitives — no MLlib, no libraries. 90.53% accuracy classifying six activities from 561-dimensional sensor data, deployed on AWS EMR.">
+<link rel="canonical" href="https://sharmajai.com/case-harsc.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="KNN from scratch on Spark: 21.7 million distance computations">
+<meta property="og:description" content="Distributed KNN on PySpark RDD primitives. 90.53% accuracy on six activities, deployed on AWS EMR.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <a class="back" href="projects.html" data-back> All projects</a>
+    <span class="label">Case study · Big data · Distributed computing</span>
+    <h1 class="display">KNN from scratch on Spark: 21.7 million distance computations.</h1>
+    <p class="lede">No MLlib. No scikit-learn. The entire K-Nearest Neighbors algorithm —
+      distance computation, neighbor selection, and voting — implemented using pure PySpark
+      RDD primitives. <span class="fig">90.53%</span> accuracy classifying six human activities
+      from 561-dimensional sensor vectors, deployed identically on a laptop and on AWS EMR.</p>
+  </section>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><span class="stat__v">90.53%</span><span class="label stat__l">Overall accuracy on held-out test set</span></div>
+      <div class="stat"><span class="stat__v">0.9024</span><span class="label stat__l">Macro-averaged F1 score</span></div>
+      <div class="stat"><span class="stat__v">21.7M</span><span class="label stat__l">Euclidean distance computations</span></div>
+      <div class="stat"><span class="stat__v">561</span><span class="label stat__l">Feature dimensions per sample</span></div>
+    </div>
+  </div>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <span class="label" style="display:block;margin-bottom:1.5rem">The pipeline</span>
+      <div class="pipe">
+        <div class="pipe__node"><span class="label">Load</span><b>S3 / local data</b></div>
+        <div class="pipe__node"><span class="label">Parse</span><b>561-dim vectors</b></div>
+        <div class="pipe__node"><span class="label">Sweep</span><b>K ∈ {1,3,5,7,11}</b></div>
+        <div class="pipe__node"><span class="label">Broadcast</span><b>7,352 train set</b></div>
+        <div class="pipe__node"><span class="label">Classify</span><b>RDD.map()</b></div>
+        <div class="pipe__node"><span class="label">Result</span><b>90.53% accuracy</b></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+
+    <section class="block">
+      <span class="label block__label">The problem</span>
+      <div class="prose">
+        <p>Human Activity Recognition (HAR) is a fundamental problem in wearable computing.
+          Smartphones carry accelerometers and gyroscopes that capture motion at 50Hz — but
+          classifying what a person is doing from that signal at scale requires a pipeline
+          that can handle large-scale inference workloads without relying on pre-built ML
+          libraries.</p>
+        <p>The constraint was deliberate: implement <strong>the entire KNN algorithm from
+          scratch</strong> using only Apache Spark's RDD operations. No MLlib, no scikit-learn,
+          no external ML library at any stage. The goal was to prove that a distributed
+          classification pipeline can be built from first principles and deployed on a cloud
+          cluster with zero code changes.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">The dataset</span>
+      <div>
+        <div class="prose">
+          <p>The UCI Human Activity Recognition Dataset, created by Anguita et al. (2013), was
+            collected from 30 volunteers aged 19–48, each wearing a Samsung Galaxy S II on their
+            waist while performing six activities: Walking, Walking Upstairs, Walking Downstairs,
+            Sitting, Standing, and Laying.</p>
+          <p>The raw 50Hz sensor signals were pre-processed into 561 features per 2.56-second
+            window — time-domain statistics (mean, std, MAD, max, min, energy, entropy,
+            autoregression coefficients) and frequency-domain features via FFT (mean frequency,
+            skewness, kurtosis, energy bands). The result is a dense floating-point vector
+            well-suited for distance-based classification.</p>
+        </div>
+        <table class="table" style="margin-top:1.5rem">
+          <caption class="sr">Dataset composition</caption>
+          <thead><tr><th scope="col">Split</th><th scope="col">Samples</th></tr></thead>
+          <tbody>
+            <tr><td>Training set</td><td>7,352</td></tr>
+            <tr><td>Test set</td><td>2,947</td></tr>
+            <tr><td>Features per sample</td><td>561</td></tr>
+            <tr><td>Activities</td><td>6</td></tr>
+            <tr><td>Subjects</td><td>30</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Inline SVG: Six activities diagram -->
+    <section class="block">
+      <span class="label block__label">The six activities</span>
+      <figure class="plate">
+        <div class="plate__img" style="padding:2rem;background:var(--film)">
+          <svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Archivo,system-ui,sans-serif" role="img" aria-label="Six classified activities grouped into dynamic and static categories">
+            <!-- Dynamic activities -->
+            <text x="225" y="20" text-anchor="middle" fill="#7A8578" font-size="11" letter-spacing="0.1em">DYNAMIC ACTIVITIES</text>
+            <rect x="20" y="35" width="130" height="85" rx="6" fill="#F4F2EE" stroke="#9E7C4E" stroke-width="1.5"/>
+            <text x="85" y="68" text-anchor="middle" fill="#9E7C4E" font-size="13" font-weight="500">Walking</text>
+            <text x="85" y="90" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.920</text>
+            <text x="85" y="107" text-anchor="middle" fill="#7A8578" font-size="10">496 samples</text>
+
+            <rect x="165" y="35" width="130" height="85" rx="6" fill="#F4F2EE" stroke="#9E7C4E" stroke-width="1.5"/>
+            <text x="230" y="60" text-anchor="middle" fill="#9E7C4E" font-size="13" font-weight="500">Walking</text>
+            <text x="230" y="76" text-anchor="middle" fill="#9E7C4E" font-size="13" font-weight="500">Upstairs</text>
+            <text x="230" y="98" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.912</text>
+
+            <rect x="310" y="35" width="130" height="85" rx="6" fill="#F4F2EE" stroke="#9E7C4E" stroke-width="1"/>
+            <text x="375" y="60" text-anchor="middle" fill="#9E7C4E" font-size="13" font-weight="500">Walking</text>
+            <text x="375" y="76" text-anchor="middle" fill="#9E7C4E" font-size="13" font-weight="500">Downstairs</text>
+            <text x="375" y="98" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.874</text>
+
+            <!-- Static activities -->
+            <text x="675" y="20" text-anchor="middle" fill="#7A8578" font-size="11" letter-spacing="0.1em">STATIC ACTIVITIES</text>
+            <rect x="530" y="35" width="130" height="85" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+            <text x="595" y="68" text-anchor="middle" fill="#0B3B2D" font-size="13" font-weight="500">Sitting</text>
+            <text x="595" y="90" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.846</text>
+
+            <rect x="675" y="35" width="130" height="85" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+            <text x="740" y="68" text-anchor="middle" fill="#0B3B2D" font-size="13" font-weight="500">Standing</text>
+            <text x="740" y="90" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.877</text>
+
+            <rect x="820" y="35" width="65" height="85" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1.5"/>
+            <text x="852" y="68" text-anchor="middle" fill="#0B3B2D" font-size="13" font-weight="500">Laying</text>
+            <text x="852" y="90" text-anchor="middle" fill="#7A8578" font-size="10">F1: 0.997</text>
+
+            <!-- Confusion arrow between Sitting/Standing -->
+            <line x1="595" y1="130" x2="740" y2="130" stroke="#7A8578" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="667" y="152" text-anchor="middle" fill="#7A8578" font-size="10" font-style="italic">Most confusion here — similar</text>
+            <text x="667" y="166" text-anchor="middle" fill="#7A8578" font-size="10" font-style="italic">accelerometer signatures in static postures</text>
+
+            <!-- Vertical divider -->
+            <line x1="475" y1="35" x2="475" y2="120" stroke="#1b2431" stroke-width="1" stroke-dasharray="4,4"/>
+          </svg>
+        </div>
+        <figcaption><b>Six activities, two behavioural categories.</b> Dynamic activities produce periodic inertial patterns. Static postures (Sitting and Standing) share nearly identical sensor signatures — the main source of classification error.</figcaption>
+      </figure>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">What I did</span>
+      <div>
+        <ol class="stepped">
+          <li><strong>Loaded and parsed the UCI HAR data.</strong> Feature matrices (X_train.txt,
+            X_test.txt) and labels (y_train.txt, y_test.txt) read from local paths or S3,
+            parsed into floating-point vectors, joined with labels using zipWithIndex(), and
+            produced RDDs of (sample_id, feature_list, activity_label) tuples.</li>
+          <li><strong>Swept over K values for validation.</strong> Split training data 80/20
+            into sub-train and validation sets. Evaluated K ∈ {1, 3, 5, 7, 11} by broadcasting
+            the sub-training data and classifying the validation set. Selected K = 11, which
+            achieved a validation macro-F1 of 0.9872.</li>
+          <li><strong>Built the distributed KNN from scratch.</strong> The full training set
+            (7,352 samples × 561 features ≈ 33 MB) is collected to the driver and shipped to
+            every executor exactly once via sc.broadcast(). Each executor classifies its
+            partition of test samples via RDD.map() — computing Euclidean distances to all
+            training samples, sorting, selecting K nearest, and performing majority voting.
+            No shuffle operation during inference.</li>
+          <li><strong>Implemented distance-weighted voting.</strong> Optional mode where each
+            neighbor's vote is weighted by 1/distance (with epsilon 1e-9 to avoid division by
+            zero), giving closer neighbors more influence on the classification.</li>
+          <li><strong>Deployed on AWS EMR.</strong> The same harsc.py script ran on a cloud
+            cluster (EMR cluster j-148KLA9P02NS) with data on S3 — zero code changes required.
+            Step completed successfully with Spark application final status: SUCCEEDED.</li>
+          <li><strong>Evaluated comprehensively.</strong> Per-class precision, recall, F1,
+            confusion matrix, phase timing analysis, and comparison against the published
+            SVM baseline by Anguita et al.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Architecture</span>
+      <figure class="plate">
+        <div class="plate__img">
+          <a href="assets/figures/big-data/pipeline-architecture.png" target="_blank" rel="noopener">
+          <img src="assets/figures/big-data/pipeline-architecture.png" alt="Pipeline architecture diagram showing four phases: Data Loading, K Sweep, KNN Inference (dominant at 94% of runtime), and Evaluation, with the broadcast-and-map pattern illustrated below showing the driver node broadcasting to four executor nodes" loading="lazy" width="1440" height="600">
+          </a>
+        </div>
+        <figcaption><b>Four-phase pipeline with broadcast-and-map inference.</b> The training
+          set is broadcast once; each executor independently classifies its partition of test
+          samples. No shuffle, no inter-partition communication — linear scalability in the
+          number of executor cores. Tap to enlarge.</figcaption>
+      </figure>
+    </section>
+
+    <!-- Inline SVG: Broadcast pattern -->
+    <section class="block">
+      <span class="label block__label">Why it scales</span>
+      <div>
+        <div class="prose">
+          <p>The architectural insight is that KNN inference is <strong>embarrassingly parallel</strong>:
+            each test sample's K nearest neighbors can be found independently of every other test
+            sample. HARSC exploits this with Spark's broadcast-and-map pattern:</p>
+        </div>
+        <figure class="plate" style="margin-top:1.5rem">
+          <div class="plate__img" style="padding:2rem 1.5rem;background:var(--film)">
+            <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Archivo,system-ui,sans-serif" role="img" aria-label="Broadcast-and-map pattern: driver broadcasts 33MB training data to four executors, each classifying a partition independently">
+              <defs>
+                <marker id="arr" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#9E7C4E"/></marker>
+              </defs>
+
+              <!-- Driver -->
+              <rect x="20" y="50" width="200" height="120" rx="8" fill="#F4F2EE" stroke="#9E7C4E" stroke-width="1.5"/>
+              <text x="120" y="80" text-anchor="middle" fill="#9E7C4E" font-size="14" font-weight="500">Driver Node</text>
+              <text x="120" y="105" text-anchor="middle" fill="#7A8578" font-size="11">sc.broadcast(train_data)</text>
+              <text x="120" y="125" text-anchor="middle" fill="#7A8578" font-size="11">7,352 × 561 features</text>
+              <text x="120" y="145" text-anchor="middle" fill="#7A8578" font-size="11">≈ 33 MB, sent once</text>
+
+              <!-- Executors -->
+              <g>
+                <rect x="310" y="10" width="150" height="90" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+                <text x="385" y="38" text-anchor="middle" fill="#0B3B2D" font-size="12">Executor 1</text>
+                <text x="385" y="58" text-anchor="middle" fill="#7A8578" font-size="10">~737 test samples</text>
+                <text x="385" y="75" text-anchor="middle" fill="#7A8578" font-size="10">map(knn_classify)</text>
+
+                <rect x="310" y="110" width="150" height="90" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+                <text x="385" y="138" text-anchor="middle" fill="#0B3B2D" font-size="12">Executor 2</text>
+                <text x="385" y="158" text-anchor="middle" fill="#7A8578" font-size="10">~737 test samples</text>
+                <text x="385" y="175" text-anchor="middle" fill="#7A8578" font-size="10">map(knn_classify)</text>
+
+                <rect x="530" y="10" width="150" height="90" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+                <text x="605" y="38" text-anchor="middle" fill="#0B3B2D" font-size="12">Executor 3</text>
+                <text x="605" y="58" text-anchor="middle" fill="#7A8578" font-size="10">~737 test samples</text>
+                <text x="605" y="75" text-anchor="middle" fill="#7A8578" font-size="10">map(knn_classify)</text>
+
+                <rect x="530" y="110" width="150" height="90" rx="6" fill="#F4F2EE" stroke="#0B3B2D" stroke-width="1"/>
+                <text x="605" y="138" text-anchor="middle" fill="#0B3B2D" font-size="12">Executor N</text>
+                <text x="605" y="158" text-anchor="middle" fill="#7A8578" font-size="10">~737 test samples</text>
+                <text x="605" y="175" text-anchor="middle" fill="#7A8578" font-size="10">map(knn_classify)</text>
+              </g>
+
+              <!-- Broadcast arrows -->
+              <line x1="224" y1="80" x2="306" y2="55" stroke="#9E7C4E" stroke-width="1" marker-end="url(#arr)"/>
+              <line x1="224" y1="110" x2="306" y2="110" stroke="#9E7C4E" stroke-width="1"/>
+              <line x1="224" y1="80" x2="306" y2="55" stroke="#9E7C4E" stroke-width="1"/>
+              <line x1="224" y1="140" x2="306" y2="155" stroke="#9E7C4E" stroke-width="1" marker-end="url(#arr)"/>
+              <line x1="224" y1="80" x2="526" y2="55" stroke="#9E7C4E" stroke-width="1" marker-end="url(#arr)"/>
+              <line x1="224" y1="140" x2="526" y2="155" stroke="#9E7C4E" stroke-width="1" marker-end="url(#arr)"/>
+
+              <!-- Result annotation -->
+              <text x="400" y="232" text-anchor="start" fill="#7A8578" font-size="11" font-style="italic">No shuffle. Each executor works independently.</text>
+              <text x="400" y="250" text-anchor="start" fill="#7A8578" font-size="11" font-style="italic">More cores → proportionally less time.</text>
+            </svg>
+          </div>
+          <figcaption><b>Linear scalability.</b> On a 2-core local node, inference takes 285 seconds. On a 16-core EMR cluster, it would decrease by roughly 8×. The same code runs on both without modification.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Results</span>
+      <div>
+        <table class="table">
+          <caption class="sr">Classification results on held-out test set</caption>
+          <thead><tr><th scope="col">Metric</th><th scope="col">Result</th></tr></thead>
+          <tbody>
+            <tr><td>Overall accuracy</td><td>90.53%</td></tr>
+            <tr><td>Macro-averaged F1</td><td>0.9024</td></tr>
+            <tr><td>Selected K (via validation)</td><td>11</td></tr>
+            <tr><td>Validation macro-F1 at K=11</td><td>0.9872</td></tr>
+            <tr><td>Published SVM baseline (Anguita et al.)</td><td>macro-F1 ≈ 0.89</td></tr>
+            <tr><td>HARSC vs SVM baseline</td><td>+0.012 F1</td></tr>
+          </tbody>
+        </table>
+
+        <div class="plate-grid plate-grid--2" style="margin-top:2.5rem">
+          <figure class="plate">
+            <div class="plate__img">
+              <a href="assets/figures/big-data/f1-per-class.png" target="_blank" rel="noopener">
+              <img src="assets/figures/big-data/f1-per-class.png" alt="Bar chart of per-class F1 scores: Laying at 0.9972, Walking at 0.9204, Walk Up at 0.9122, Standing at 0.8768, Walk Down at 0.8739, Sitting at 0.8459" loading="lazy">
+              </a>
+            </div>
+            <figcaption><b>Per-class F1 scores.</b> Laying is near-perfect due to its
+              distinctive gravity-aligned signal. Sitting and Standing are hardest —
+              both are static postures with very similar sensor patterns.</figcaption>
+          </figure>
+          <figure class="plate">
+            <div class="plate__img">
+              <a href="assets/figures/big-data/confusion-matrix.png" target="_blank" rel="noopener">
+              <img src="assets/figures/big-data/confusion-matrix.png" alt="6 by 6 confusion matrix showing strong diagonal dominance with the main off-diagonal errors between Sitting and Standing" loading="lazy">
+              </a>
+            </div>
+            <figcaption><b>Confusion matrix (K = 11, N = 2,947).</b> Strong diagonal
+              dominance. The main off-diagonal errors occur between Sitting and Standing,
+              which share near-identical accelerometer and gyroscope readings.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Phase timing</span>
+      <div>
+        <div class="prose">
+          <p>Inference dominates at <strong>94.1% of total runtime</strong> — because each of
+            2,947 test samples computes 7,352 Euclidean distances in 561-dimensional space.
+            That is approximately 21.7 million distance computations, all running inside
+            Spark map lambdas.</p>
+        </div>
+        <table class="table" style="margin-top:1.5rem">
+          <caption class="sr">Phase timing on a 2-core local node</caption>
+          <thead><tr><th scope="col">Phase</th><th scope="col">Time</th></tr></thead>
+          <tbody>
+            <tr><td>Data loading</td><td>4.2s</td></tr>
+            <tr><td>K sweep on validation</td><td>13.7s</td></tr>
+            <tr><td>KNN inference</td><td>285.0s</td></tr>
+            <tr><td>Evaluation &amp; output</td><td>0.2s</td></tr>
+            <tr><td>Total</td><td>~303s (5 min)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Analysis</span>
+      <div class="prose">
+        <p><strong>Laying</strong> achieves the highest F1 (0.9972) because when a subject
+          lies down, gravity dominates a single accelerometer axis — making it almost
+          perfectly separable from every other activity.</p>
+        <p><strong>Dynamic activities</strong> (Walking, Walking Upstairs, Walking Downstairs)
+          achieve F1 between 0.87 and 0.92. They produce well-separated periodic inertial
+          patterns. Walking Downstairs has the lowest recall (0.7976) — some downstairs steps
+          are misclassified as general walking.</p>
+        <p><strong>Sitting and Standing</strong> show the most confusion (F1 of 0.85 and 0.88).
+          Both are static postures producing very similar sensor signals. The distinguishing
+          features are subtle differences in trunk angle and minor postural shifts. Distance-weighted
+          voting could further improve this separation.</p>
+        <p>The KNN result of macro-F1 = 0.9024 <strong>slightly exceeds the published SVM
+          baseline</strong> of macro-F1 ≈ 0.89 by Anguita et al. — despite using no optimised
+          ML library and no iterative training. The trade-off is inference cost: brute-force KNN
+          is O(N·D) per test sample, but Spark's parallelism mitigates this for moderate-scale data.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Cloud deployment</span>
+      <div class="prose">
+        <p>The pipeline was deployed on AWS EMR (cluster j-148KLA9P02NS) with data stored in
+          S3. The same harsc.py script ran on the cloud cluster with zero code changes — data
+          paths switch from local to s3:// URI scheme and everything else remains identical.
+          Spark application final status: <strong>SUCCEEDED</strong>.</p>
+        <p>The cloud run used a reduced configuration (K=5 only, 10% training data) for
+          efficient validation under the course cloud environment. The canonical metrics
+          (90.53% accuracy, 0.9024 macro-F1) were obtained from the complete local Spark
+          run with the full training configuration.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Key finding</span>
+      <div>
+        <p class="finding">A from-scratch KNN implementation distributed over Spark RDDs is
+          both feasible and competitive — exceeding the published SVM baseline without any ML
+          library. The broadcast-and-map architecture gives linear scalability, and the same
+          code runs identically on a laptop and a cloud cluster.</p>
+        <div class="chips" style="margin-top:2.5rem">
+          <span class="chip">PySpark</span><span class="chip">AWS EMR</span>
+          <span class="chip">S3</span><span class="chip">KNN</span>
+          <span class="chip">RDD</span><span class="chip">Euclidean distance</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <span class="label block__label">Read further</span>
+      <div>
+        <div class="docs">
+          <a class="doc" href="assets/documents/HARSC_Final_Report.docx"><span>Full technical report</span><span class="doc__kind">DOCX</span></a>
+          <a class="doc" href="assets/documents/HARSC_Results_Report.docx"><span>Results report</span><span class="doc__kind">DOCX</span></a>
+          <a class="doc" data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener"><span>Code on GitHub</span><span class="doc__kind">REPO</span></a>
+        </div>
+        <div class="hero__cta" style="margin-top:2.5rem">
+          <a class="btn" href="case-hand-oa.html" data-arrow>Next case study</a>
+          <a class="btn" href="contact.html" data-arrow>Ask me about it</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span><a data-site="email" href="mailto:sharmajai.us@gmail.com">sharmajai.us@gmail.com</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

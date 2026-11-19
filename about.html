@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — Jai Sharma</title>
+<meta name="description" content="Data scientist and ML engineer in Boston. National-level swimmer, Ironman in training, swim instructor, and digital-literacy volunteer.">
+<link rel="canonical" href="https://sharmajai.com/about.html">
+<link rel="icon" href="assets/branding/favicon.ico" sizes="32x32">
+<link rel="icon" href="assets/branding/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="assets/branding/apple-touch-icon.png">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="About — Jai Sharma">
+<meta property="og:description" content="Data scientist and ML engineer in Boston. National-level swimmer and Ironman in training.">
+<meta property="og:image" content="https://sharmajai.com/assets/branding/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&amp;family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  /* Photo sits beside the text and stays a true square at every width —
+     aspect-ratio + object-fit means it crops rather than distorts. */
+  .bio { display: grid; gap: 2.5rem; align-items: start; }
+  @media (min-width: 760px) {
+    .bio { grid-template-columns: minmax(0, 1fr) clamp(240px, 30vw, 360px); gap: 3.5rem; }
+    .bio__photo { position: sticky; top: 100px; }
+  }
+  .bio__photo { margin: 0; }
+  .bio__photo img {
+    /* height:auto is required — the img's height attribute is a presentational
+       hint that otherwise wins over aspect-ratio and stretches the frame */
+    width: 100%; height: auto; aspect-ratio: 1 / 1;
+    object-fit: cover; object-position: 50% 22%;
+    border-radius: 4px; border: 1px solid var(--line);
+    filter: grayscale(1) contrast(1.04);
+  }
+  .bio__photo figcaption { margin-top: .9rem; }
+  /* the opening paragraph, set larger than the rest */
+  .bio__open {
+    font-family: var(--display); font-size: clamp(1.24rem, 2vw, 1.5rem);
+    font-weight: 300; line-height: 1.42; letter-spacing: -0.018em;
+    color: var(--bone); max-width: 34ch;
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="nav__in">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true">JS</span>
+      <span class="brand__name">Jai Sharma</span>
+    </a>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Open menu" aria-controls="nav-links">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 4h14M1 8h14M1 12h14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    </button>
+    <nav class="nav__links" id="nav-links" data-open="false" aria-label="Primary">
+      <a class="nav__link" href="experience.html">Experience</a>
+      <a class="nav__link" href="research.html">Research</a>
+      <a class="nav__link" href="projects.html">Projects</a>
+      <a class="nav__link" href="writing.html">Writing</a>
+      <a class="nav__link" href="about.html">About</a>
+      <a class="nav__link" href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="wrap page-head">
+    <span class="label">About</span>
+    <h1 class="display">I'd rather ship something honest than something impressive.</h1>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap bio">
+      <div class="prose">
+        <p class="bio__open">
+          I'm a data scientist and ML engineer, a master's student at Boston
+          University, with a B.Tech in Computer Science from India.
+        </p>
+        <p>My work has landed in three places that turn out to be the same problem
+          wearing different clothes: <strong>generative models for medical imaging</strong>,
+          where a class-conditional latent diffusion model synthesises the severe-grade
+          X-rays a dataset barely contains; <strong>distributed systems</strong>, where I
+          wrote KNN from scratch on PySpark RDD primitives rather than reach for MLlib;
+          and <strong>applied AI</strong>, where a multi-agent retrieval system runs
+          entirely on a local LLM. The common thread is scarcity — of data, of compute,
+          of the labels you actually wanted.</p>
+        <p>Four of my papers are peer-reviewed, across IEEE Access, IJACSA and
+          Springer Nature CCIS. That work taught me the habit I care most about:
+          reporting the number that survived the held-out test set, not the one
+          from the run that went well.</p>
+        <p>What I want next is a team where the model has to keep working after the
+          notebook closes — where someone downstream depends on it, and the
+          evaluation is honest because it has to be.</p>
+
+        <div class="hero__cta" style="margin-top:2.5rem">
+          <a class="btn btn--primary" data-resume download hidden data-arrow>Download résumé</a>
+          <a class="btn" href="contact.html" data-arrow>Get in touch</a>
+        </div>
+      </div>
+
+      <figure class="bio__photo">
+        <img src="assets/photo/jai.jpeg" alt="Jai Sharma" width="1168" height="1168">
+        <figcaption class="label">Jai Sharma · Boston, MA</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="wrap"><div data-availability hidden></div></div>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="shead">
+        <div class="shead__top"><span class="label">Outside the terminal</span></div>
+        <h2 class="display">The other half of the training.</h2>
+        <p class="lede">These aren't padding. Each one taught me something I use at
+          work, and the line underneath says exactly what.</p>
+      </div>
+      <div data-render="life"></div>
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="shead">
+        <div class="shead__top"><span class="label">Documents</span></div>
+        <h2 class="display">Read the primary sources.</h2>
+      </div>
+      <div data-render="docs"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__in">
+      <div>
+        <h2 class="display">Get in touch.</h2>
+        <p>Email is the quickest way to reach me.</p>
+        <p style="margin-top:1.4rem">
+          <a class="link" data-site="email" href="mailto:sharmajai.us@gmail.com">sharmajai.us@gmail.com</a>
+        </p>
+      </div>
+      <div class="foot__col">
+        <h3 class="label">Pages</h3>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="experience.html">Experience</a></li>
+          <li><a href="research.html">Research</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="foot__col">
+        <h3 class="label">Elsewhere</h3>
+        <ul>
+          <li><a data-site="github" href="https://github.com/jai0812" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a data-site="linkedin" href="https://linkedin.com/in/jaisharma08122002/" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li><a data-site="orcid" href="https://orcid.org/0009-0006-7427-8998" target="_blank" rel="noopener">ORCID</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot__base">
+      <span>© <span data-year>2026</span> Jai Sharma</span>
+      <span>Boston, Massachusetts</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

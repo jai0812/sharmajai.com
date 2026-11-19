@@ -1,0 +1,72 @@
+[build]
+  publish = "."
+
+# ---------------------------------------------------------------------------
+# Keep working files off the public site.
+#
+# publish = "." ships the whole folder, so anything sitting here is reachable
+# at sharmajai.com/<path> unless it is blocked. These are build notes and
+# tooling — useful locally, not meant for visitors. Serving them as 404 keeps
+# them out of browsers and out of search results.
+#
+# force = true so the rule wins even though the file genuinely exists.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from = "/README.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/tools/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Local dev config — dev server, launch settings, local permissions.
+[[redirects]]
+  from = "/.claude/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.md"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Long-cache the fingerprinted-ish assets, never cache the HTML — so a content
+# edit goes live immediately instead of waiting out a stale copy in someone's
+# browser (which is exactly what bit us in local testing).
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# CSS and JS revalidate on every visit. They're ~40 KB combined and a
+# revalidation that hasn't changed costs a 304 and a few hundred bytes — cheap
+# insurance against a returning visitor seeing hour-old content after you edit
+# js/data.js. There's no build step here, so filenames never change and a long
+# cache would have no way to know the file did.
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
